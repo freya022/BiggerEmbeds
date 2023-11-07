@@ -10,7 +10,6 @@ import io.github.freya022.botcommands.api.core.utils.namedDefaultScope
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.cancel
 import net.dv8tion.jda.api.events.session.ShutdownEvent
-import net.dv8tion.jda.api.interactions.DiscordLocale
 import java.lang.management.ManagementFactory
 import kotlin.io.path.absolutePathString
 import kotlin.system.exitProcess
@@ -20,7 +19,7 @@ import ch.qos.logback.classic.ClassicConstants as LogbackConstants
 private val logger by lazy { KotlinLogging.logger {} } // Must not load before system property is set
 
 private const val mainPackageName = "io.github.freya022.bot"
-private const val botName = "BotTemplate"
+private const val botName = "BiggerEmbeds"
 
 object Main {
     @JvmStatic
@@ -77,9 +76,6 @@ object Main {
 
                     // Guilds in which `@Test` commands will be inserted
                     testGuildIds += config.testGuildIds
-
-                    // Add french localization for application commands
-                    addLocalizations("Commands", DiscordLocale.FRENCH)
                 }
 
                 components {

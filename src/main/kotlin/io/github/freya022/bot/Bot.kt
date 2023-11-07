@@ -16,8 +16,7 @@ class Bot(private val config: Config) : JDAService() {
     override fun createJDA(event: BReadyEvent, eventManager: IEventManager) {
         // You MUST disable enableCoroutines and set the event manager to the injected one
         light(config.token, intents = intents, enableCoroutines = false) {
-            setMaxReconnectDelay(120) //Try to reconnect every 2 minutes instead of the default 15 minutes
-            setActivity(Activity.playing("with Kotlin"))
+            setActivity(Activity.customStatus("I need more bullets"))
             setEventManager(eventManager)
         }
     }
