@@ -17,6 +17,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import net.dv8tion.jda.api.entities.channel.attribute.IWebhookContainer
 import net.dv8tion.jda.api.interactions.InteractionHook
+import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder
 import kotlin.time.Duration.Companion.milliseconds
 
 @Command
@@ -39,14 +40,13 @@ class SlashPost(
         }
 
         try {
-            var editableMessage = AbstractLinksWatcher.EditableMessage.fromContent(post)
+            var builder = MessageCreateBuilder().setContent(post)
             for (linksWatcher in linksWatchers) {
-                val newData = linksWatcher.editMessageIfNeededOrNull(editableMessage)
-                if (newData != null) editableMessage = newData
+                val newData = linksWatcher.editMessageIfNeededOrNull(builder, emptyList())
+                if (newData != null) builder = newData
             }
 
-            val message = AbstractLinksWatcher.createMessage(event.member, editableMessage)
-            webhookStore.getWebhook(channel).send(message).await()
+            webhookStore.getWebhook(channel).sendMessage(builder.build()).await()
         } finally {
             job.cancelAndJoin()
         }

@@ -1,7 +1,5 @@
 package io.github.freya022.bot
 
-import club.minnced.discord.webhook.WebhookClient
-import club.minnced.discord.webhook.external.JDAWebhookClient
 import dev.minn.jda.ktx.coroutines.await
 import io.github.freya022.botcommands.api.core.service.annotations.BService
 import kotlinx.coroutines.Dispatchers
@@ -16,13 +14,12 @@ import net.dv8tion.jda.api.entities.channel.attribute.IWebhookContainer
 @BService
 class WebhookStore {
     private val lock = Mutex()
-    private val webhooks: MutableMap<Long, WebhookClient> = hashMapOf()
+    private val webhooks: MutableMap<Long, Webhook> = hashMapOf()
 
     suspend fun getWebhook(channel: IWebhookContainer) = lock.withLock {
         webhooks.getOrPut(channel.idLong) {
-            val webhook = channel.retrieveWebhooks().await().find { it.name == getWebhookName(channel) }
+            channel.retrieveWebhooks().await().find { it.name == getWebhookName(channel) }
                 ?: createWebhook(channel)
-            JDAWebhookClient.from(webhook)
         }
     }
 
