@@ -11,7 +11,7 @@ import net.dv8tion.jda.api.requests.GatewayIntent
 
 @BService
 class Bot(private val config: Config) : JDAService() {
-    override val intents: Set<GatewayIntent> = defaultIntents
+    override val intents: Set<GatewayIntent> = defaultIntents + GatewayIntent.MESSAGE_CONTENT
 
     override fun createJDA(event: BReadyEvent, eventManager: IEventManager) {
         // You MUST disable enableCoroutines and set the event manager to the injected one
