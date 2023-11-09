@@ -1,6 +1,5 @@
 package io.github.freya022.bot.link
 
-import io.github.freya022.bot.WebhookStore
 import io.github.freya022.botcommands.api.core.service.annotations.BService
 import io.github.freya022.botcommands.api.core.utils.namedDefaultScope
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -13,7 +12,7 @@ import java.io.ByteArrayOutputStream
 private val logger = KotlinLogging.logger { }
 
 @BService
-class TokTokLinksWatcher(webhookStore: WebhookStore) : AbstractLinksWatcher(webhookStore) {
+class TokTokLinkTransformer : LinkTransformer {
     private val outputScope = namedDefaultScope("TokTok yt-dlp output", 2)
 
     override fun editMessageIfNeededOrNull(builder: MessageCreateBuilder): MessageCreateBuilder? {

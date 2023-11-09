@@ -3,7 +3,7 @@ package io.github.freya022.bot.commands.slash
 import dev.minn.jda.ktx.coroutines.await
 import dev.minn.jda.ktx.messages.reply_
 import io.github.freya022.bot.WebhookStore
-import io.github.freya022.bot.link.AbstractLinksWatcher
+import io.github.freya022.bot.link.LinkTransformer
 import io.github.freya022.botcommands.api.commands.annotations.Command
 import io.github.freya022.botcommands.api.commands.application.ApplicationCommand
 import io.github.freya022.botcommands.api.commands.application.slash.GuildSlashEvent
@@ -26,7 +26,7 @@ class SlashPost(
     private val webhookStore: WebhookStore
 ) : ApplicationCommand() {
     private val dynamicHookScope = namedDefaultScope("/post dynamic hook", 1)
-    private val linksWatchers = context.getInterfacedServices<AbstractLinksWatcher>()
+    private val linkTransformers = context.getInterfacedServices<LinkTransformer>()
 
     @JDASlashCommand(name = "post")
     suspend fun onSlashPost(event: GuildSlashEvent, @SlashOption(description = "The post content") post: String) {
@@ -41,7 +41,7 @@ class SlashPost(
 
         try {
             var builder = MessageCreateBuilder().setContent(post)
-            for (linksWatcher in linksWatchers) {
+            for (linksWatcher in linkTransformers) {
                 val newData = linksWatcher.editMessageIfNeededOrNull(builder)
                 if (newData != null) builder = newData
             }
