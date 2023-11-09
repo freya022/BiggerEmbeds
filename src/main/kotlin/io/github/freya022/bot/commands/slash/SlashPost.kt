@@ -42,11 +42,15 @@ class SlashPost(
         try {
             var builder = MessageCreateBuilder().setContent(post)
             for (linksWatcher in linksWatchers) {
-                val newData = linksWatcher.editMessageIfNeededOrNull(builder, emptyList())
+                val newData = linksWatcher.editMessageIfNeededOrNull(builder)
                 if (newData != null) builder = newData
             }
 
-            webhookStore.getWebhook(channel).sendMessage(builder.build()).await()
+            webhookStore.getWebhook(channel)
+                .sendMessage(builder.build())
+                .setUsername(event.member.effectiveName)
+                .setAvatarUrl(event.member.effectiveAvatarUrl)
+                .await()
         } finally {
             job.cancelAndJoin()
         }

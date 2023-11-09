@@ -6,7 +6,7 @@ import io.github.freya022.botcommands.api.core.utils.namedDefaultScope
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.launch
 import net.dv8tion.jda.api.utils.FileUpload
-import net.dv8tion.jda.api.utils.messages.MessageRequest
+import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import java.io.ByteArrayOutputStream
 
@@ -16,7 +16,7 @@ private val logger = KotlinLogging.logger { }
 class TokTokLinksWatcher(webhookStore: WebhookStore) : AbstractLinksWatcher(webhookStore) {
     private val outputScope = namedDefaultScope("TokTok yt-dlp output", 2)
 
-    override fun <T : MessageRequest<*>> editMessageIfNeededOrNull(builder: T, attachments: List<FileUpload>): T? {
+    override fun editMessageIfNeededOrNull(builder: MessageCreateBuilder): MessageCreateBuilder? {
         val files = arrayListOf<FileUpload>()
         val replaced = urlRegex.replace(builder.content) { matchResult ->
             val url = matchResult.value
@@ -47,7 +47,7 @@ class TokTokLinksWatcher(webhookStore: WebhookStore) : AbstractLinksWatcher(webh
         return when {
             files.isNotEmpty() -> builder.also {
                 builder.setContent(replaced)
-                builder.setFiles(attachments + files)
+                builder.addFiles(files)
             }
             else -> null
         }
