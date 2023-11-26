@@ -9,8 +9,6 @@ import io.github.freya022.botcommands.api.commands.application.ApplicationComman
 import io.github.freya022.botcommands.api.commands.application.slash.GuildSlashEvent
 import io.github.freya022.botcommands.api.commands.application.slash.annotations.JDASlashCommand
 import io.github.freya022.botcommands.api.commands.application.slash.annotations.SlashOption
-import io.github.freya022.botcommands.api.core.BContext
-import io.github.freya022.botcommands.api.core.service.getInterfacedServices
 import io.github.freya022.botcommands.api.core.utils.namedDefaultScope
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
@@ -22,11 +20,10 @@ import kotlin.time.Duration.Companion.milliseconds
 
 @Command
 class SlashPost(
-    context: BContext,
-    private val webhookStore: WebhookStore
+    private val webhookStore: WebhookStore,
+    private val linkTransformers: List<LinkTransformer>
 ) : ApplicationCommand() {
     private val dynamicHookScope = namedDefaultScope("/post dynamic hook", 1)
-    private val linkTransformers = context.getInterfacedServices<LinkTransformer>()
 
     @JDASlashCommand(name = "post")
     suspend fun onSlashPost(event: GuildSlashEvent, @SlashOption(description = "The post content") post: String) {

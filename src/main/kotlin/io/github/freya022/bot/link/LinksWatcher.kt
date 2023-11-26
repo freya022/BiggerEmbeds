@@ -2,10 +2,8 @@ package io.github.freya022.bot.link
 
 import dev.minn.jda.ktx.coroutines.await
 import io.github.freya022.bot.WebhookStore
-import io.github.freya022.botcommands.api.core.BContext
 import io.github.freya022.botcommands.api.core.annotations.BEventListener
 import io.github.freya022.botcommands.api.core.service.annotations.BService
-import io.github.freya022.botcommands.api.core.service.getInterfacedServices
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.channel.attribute.IWebhookContainer
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
@@ -13,9 +11,10 @@ import net.dv8tion.jda.api.utils.FileUpload
 import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder
 
 @BService
-class LinksWatcher(context: BContext, private val webhookStore: WebhookStore) {
-    private val linkTransformers = context.getInterfacedServices<LinkTransformer>()
-
+class LinksWatcher(
+    private val webhookStore: WebhookStore,
+    private val linkTransformers: List<LinkTransformer>
+) {
     @BEventListener
     suspend fun onMessage(event: MessageReceivedEvent) {
         if (event.author.isBot || event.isWebhookMessage || event.message.type.isSystem) return
