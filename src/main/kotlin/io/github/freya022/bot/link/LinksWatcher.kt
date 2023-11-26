@@ -18,7 +18,7 @@ class LinksWatcher(context: BContext, private val webhookStore: WebhookStore) {
 
     @BEventListener
     suspend fun onMessage(event: MessageReceivedEvent) {
-        if (event.author.isBot || event.isWebhookMessage) return
+        if (event.author.isBot || event.isWebhookMessage || event.message.type.isSystem) return
 
         val channel = event.channel
         if (channel !is IWebhookContainer) return
