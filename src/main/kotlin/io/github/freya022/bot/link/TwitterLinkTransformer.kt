@@ -1,7 +1,6 @@
 package io.github.freya022.bot.link
 
 import dev.minn.jda.ktx.interactions.components.row
-import dev.minn.jda.ktx.messages.into
 import io.github.freya022.botcommands.api.core.service.annotations.BService
 import net.dv8tion.jda.api.interactions.components.buttons.Button
 import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder
@@ -12,7 +11,7 @@ data object TwitterLinkTransformer : LinkTransformer {
     private val replacedHosts = setOf("twitter.com", "x.com", "nitter.net", "vxtwitter.com")
 
     override fun editMessageIfNeededOrNull(builder: MessageCreateBuilder): MessageCreateBuilder? {
-        val nitterUrls = arrayListOf<String>()
+        val urls = arrayListOf<String>()
         val replaced = urlRegex.replace(builder.content) {
             val httpUrl = it.value.toHttpUrlOrNull() ?: return@replace it.value
             if (httpUrl.host !in replacedHosts) return@replace it.value
@@ -23,17 +22,28 @@ data object TwitterLinkTransformer : LinkTransformer {
                 .query(null)
                 .fragment(null)
                 .toString()
-                .also { url -> nitterUrls.add(url.replaceFirst("vxtwitter.com", "nitter.net")) }
+                .also(urls::add)
         }
 
+        fun String.asNitterUrl() = replaceFirst("vxtwitter.com", "nitter.net")
+        fun String.asTwitterUrl() = replaceFirst("vxtwitter.com", "twitter.com")
+
         return when {
-            nitterUrls.isNotEmpty() -> builder.also { createBuilder ->
+            urls.isNotEmpty() -> builder.also { createBuilder ->
                 createBuilder.setContent(replaced)
-                if (nitterUrls.size == 1) {
-                    createBuilder.addComponents(Button.link(nitterUrls.first(), "See on Nitter").into())
+                if (urls.size == 1) {
+                    createBuilder.addActionRow(
+                        Button.link(urls.first().asNitterUrl(), "See on Nitter"),
+                        Button.link(urls.first().asTwitterUrl(), "See on Twitter")
+                    )
                 } else {
-                    val buttons = nitterUrls.mapIndexed { i, url -> Button.link(url, "See #${i + 1} on Nitter") }
-                    createBuilder.addComponents(buttons.chunked(5) { it.row() })
+                    val buttons = urls.flatMapIndexed { i, url ->
+                        listOf(
+                            Button.link(url.asNitterUrl(), "See #${i + 1} on Nitter"),
+                            Button.link(url.asTwitterUrl(), "See #${i + 1} on Twitter")
+                        )
+                    }
+                    createBuilder.addComponents(buttons.chunked(4) { it.row() }.take(5))
                 }
             }
             else -> null
