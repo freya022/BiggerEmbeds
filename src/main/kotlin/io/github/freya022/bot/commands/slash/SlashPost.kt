@@ -25,7 +25,7 @@ class SlashPost(
 ) : ApplicationCommand() {
     private val dynamicHookScope = namedDefaultScope("/post dynamic hook", 1)
 
-    @JDASlashCommand(name = "post")
+    @JDASlashCommand(name = "post", description = "Send media with better embeds")
     suspend fun onSlashPost(event: GuildSlashEvent, @SlashOption(description = "The post content") post: String) {
         val channel = event.channel
         if (channel !is IWebhookContainer)
