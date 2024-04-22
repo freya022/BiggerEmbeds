@@ -6,28 +6,14 @@
         </encoder>
     </appender>
 
-    <!-- JDA logging -->
-    <logger name="net.dv8tion.jda" level="info" additivity="false">
-        <appender-ref ref="STDOUT"/>
-    </logger>
+    <!-- BotCommands -->
+    <logger name="io.github.freya022.botcommands" level="debug"/>
 
-    <!-- HikariCP logging -->
-    <logger name="com.zaxxer.hikari" level="info" additivity="false">
-        <appender-ref ref="STDOUT"/>
-    </logger>
+    <!-- Bot -->
+    <logger name="io.github.freya022.bot" level="debug"/>
 
-    <!-- BotCommands logging -->
-    <logger name="io.github.freya022.botcommands" level="info" additivity="false">
-        <appender-ref ref="STDOUT"/>
-    </logger>
-
-    <!-- Logging queries, set to trace to enable -->
-    <logger name="io.github.freya022.botcommands.api.core.db.KPreparedStatement" level="info" additivity="false">
-        <appender-ref ref="STDOUT"/>
-    </logger>
-
-    <!-- All the remaining loggers -->
-    <root level="debug">
+    <!-- Other logs -->
+    <root level="info">
         <appender-ref ref="STDOUT"/>
     </root>
 </configuration>
