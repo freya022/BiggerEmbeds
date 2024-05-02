@@ -5,7 +5,6 @@ import io.github.freya022.botcommands.api.core.utils.namedDefaultScope
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.launch
 import net.dv8tion.jda.api.utils.FileUpload
-import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import java.io.ByteArrayOutputStream
 
@@ -15,7 +14,8 @@ private val logger = KotlinLogging.logger { }
 class TokTokLinkTransformer : LinkTransformer {
     private val outputScope = namedDefaultScope("TokTok yt-dlp output", 2)
 
-    override fun editMessageIfNeededOrNull(builder: MessageCreateBuilder): MessageCreateBuilder? {
+    override suspend fun processMessage(data: TransformData) {
+        val builder = data.builder
         val files = arrayListOf<FileUpload>()
         val replaced = urlRegex.replace(builder.content) { matchResult ->
             val url = matchResult.value
@@ -27,11 +27,12 @@ class TokTokLinkTransformer : LinkTransformer {
             val process = ProcessBuilder(
                 "yt-dlp",
                 "-f", "bv*[filesize<=20M][vcodec=h264]+ba/b[filesize<=20M][vcodec=h264] / wv*[filesize<=25M][vcodec=h264]+ba/w[filesize<=25M][vcodec=h264]",
-                "-o", "-",
+                "-o", "-", //TODO replace output pipe with temp file w/ cleanup
                 "-q", "--verbose",
                 url
             ).start()
 
+            //TODO replace with Process extensions
             outputScope.launch { process.inputStream.buffered(1024 * 1024).transferTo(byteStream) }
             outputScope.launch { process.errorStream.buffered().transferTo(errorStream) }
 
@@ -43,12 +44,9 @@ class TokTokLinkTransformer : LinkTransformer {
             ""
         }
 
-        return when {
-            files.isNotEmpty() -> builder.also {
-                builder.setContent(replaced)
-                builder.addFiles(files)
-            }
-            else -> null
-        }
+        if (files.isEmpty()) return
+
+        builder.setContent(replaced)
+        builder.addFiles(files)
     }
 }

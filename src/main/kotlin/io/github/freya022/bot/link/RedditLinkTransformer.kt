@@ -1,12 +1,12 @@
 package io.github.freya022.bot.link
 
 import io.github.freya022.botcommands.api.core.service.annotations.BService
-import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 
 @BService
 data object RedditLinkTransformer : LinkTransformer {
-    override fun editMessageIfNeededOrNull(builder: MessageCreateBuilder): MessageCreateBuilder? {
+    override suspend fun processMessage(data: TransformData) {
+        val builder = data.builder
         val replaced = urlRegex.replace(builder.content) {
             val httpUrl = it.value.toHttpUrlOrNull() ?: return@replace it.value
             if (!httpUrl.host.endsWith("reddit.com")) return@replace it.value
@@ -19,9 +19,7 @@ data object RedditLinkTransformer : LinkTransformer {
                 .toString()
         }
 
-        return when {
-            replaced != builder.content -> builder.also { it.setContent(replaced) }
-            else -> null
-        }
+        if (replaced != builder.content)
+            builder.setContent(replaced)
     }
 }

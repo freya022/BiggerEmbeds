@@ -7,8 +7,6 @@ import io.github.freya022.botcommands.api.core.service.annotations.BService
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.channel.attribute.IWebhookContainer
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
-import net.dv8tion.jda.api.utils.FileUpload
-import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder
 
 @BService
 class LinksWatcher(
@@ -22,24 +20,12 @@ class LinksWatcher(
         val channel = event.channel
         if (channel !is IWebhookContainer) return
 
-        var changed = false
-        var builder = MessageCreateBuilder.fromMessage(event.message)
-        for (linkWatcher in linkTransformers) {
-            val newData = linkWatcher.editMessageIfNeededOrNull(builder)
-            if (newData != null) {
-                changed = true
-                builder = newData
-            }
-        }
-        if (!changed) {
-            return
-        }
-
-        val messageAttachments = event.message.attachments.map { FileUpload.fromData(it.proxy.download().await(), it.fileName) }
-        builder.setFiles(messageAttachments + builder.attachments)
+        val data = TransformData(event.message)
+        linkTransformers.forEach { it.processMessage(data) }
+        if (!data.hasChanged) return
 
         webhookStore.getWebhook(channel)
-            .sendMessage(builder.build())
+            .sendMessage(data.buildMessage())
             .setUsername(event.member!!.effectiveName)
             .setAvatarUrl(event.member!!.effectiveAvatarUrl)
             .await()

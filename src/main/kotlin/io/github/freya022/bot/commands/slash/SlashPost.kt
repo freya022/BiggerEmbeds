@@ -4,6 +4,8 @@ import dev.minn.jda.ktx.coroutines.await
 import dev.minn.jda.ktx.messages.reply_
 import io.github.freya022.bot.WebhookStore
 import io.github.freya022.bot.link.LinkTransformer
+import io.github.freya022.bot.link.TransformData
+import io.github.freya022.bot.utils.use
 import io.github.freya022.botcommands.api.commands.annotations.Command
 import io.github.freya022.botcommands.api.commands.application.ApplicationCommand
 import io.github.freya022.botcommands.api.commands.application.slash.GlobalSlashEvent
@@ -20,8 +22,9 @@ import net.dv8tion.jda.api.interactions.IntegrationType.USER_INSTALL
 import net.dv8tion.jda.api.interactions.InteractionContextType.GUILD
 import net.dv8tion.jda.api.interactions.InteractionContextType.PRIVATE_CHANNEL
 import net.dv8tion.jda.api.interactions.InteractionHook
-import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder
-import net.dv8tion.jda.api.utils.messages.MessageCreateData
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 import kotlin.time.Duration.Companion.milliseconds
 
 @Command
@@ -43,11 +46,16 @@ class SlashPost(
                 return event.reply_("Can only run in channels with webhooks", ephemeral = true).queue()
 
             runDynamicHook(event, ephemeral = true) {
-                webhookStore.getWebhook(channel)
-                    .sendMessage(getMessageData(post))
-                    .setUsername(event.member?.effectiveName ?: event.user.effectiveName)
-                    .setAvatarUrl(event.member?.effectiveAvatarUrl ?: event.user.effectiveName)
-                    .await()
+                TransformData(post).use { data ->
+                    linkTransformers.forEach { it.processMessage(data) }
+                    val message = data.buildMessage()
+
+                    webhookStore.getWebhook(channel)
+                        .sendMessage(message)
+                        .setUsername(event.member?.effectiveName ?: event.user.effectiveName)
+                        .setAvatarUrl(event.member?.effectiveAvatarUrl ?: event.user.effectiveName)
+                        .await()
+                }
             }
 
             if (event.isAcknowledged) {
@@ -59,19 +67,27 @@ class SlashPost(
             }
         } else {
             // Friends, GDMs and detached guilds
-            val messageData = runDynamicHook(event, ephemeral = false) {
-                getMessageData(post)
-            }
+            TransformData(post).use { data ->
+                val message = runDynamicHook(event, ephemeral = false) {
+                    linkTransformers.forEach { it.processMessage(data) }
+                    data.buildMessage()
+                }
 
-            if (event.isAcknowledged) {
-                event.hook.sendMessage(messageData).queue()
-            } else {
-                event.reply(messageData).queue()
+                if (event.isAcknowledged) {
+                    event.hook.sendMessage(message).queue()
+                } else {
+                    event.reply(message).queue()
+                }
             }
         }
     }
 
+    @OptIn(ExperimentalContracts::class)
     private suspend inline fun <R> runDynamicHook(event: GlobalSlashEvent, ephemeral: Boolean, block: () -> R): R {
+        contract {
+            callsInPlace(block, InvocationKind.EXACTLY_ONCE)
+        }
+
         val job = dynamicHookScope.launch {
             delay(500.milliseconds)
             event.deferReply(ephemeral).await()
@@ -82,16 +98,5 @@ class SlashPost(
         } finally {
             job.cancelAndJoin()
         }
-    }
-
-    private fun getMessageData(post: String): MessageCreateData {
-        var builder = MessageCreateBuilder().setContent(post)
-        for (linksWatcher in linkTransformers) {
-            val newData = linksWatcher.editMessageIfNeededOrNull(builder)
-            if (newData != null) builder = newData
-        }
-
-        val messageCreateData = builder.build()
-        return messageCreateData
     }
 }
