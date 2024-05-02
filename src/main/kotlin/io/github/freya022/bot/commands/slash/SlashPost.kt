@@ -16,6 +16,7 @@ import io.github.freya022.botcommands.api.core.utils.namedDefaultScope
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.channel.attribute.IWebhookContainer
 import net.dv8tion.jda.api.interactions.IntegrationType.GUILD_INSTALL
 import net.dv8tion.jda.api.interactions.IntegrationType.USER_INSTALL
@@ -40,10 +41,13 @@ class SlashPost(
         integrationTypes = [GUILD_INSTALL, USER_INSTALL],
     )
     suspend fun onSlashPost(event: GlobalSlashEvent, @SlashOption(description = "The post content") post: String) {
-        if (event.guild?.isDetached == false) {
+        val guild = event.guild
+        if (guild?.isDetached == false) {
             val channel = event.channel
             if (channel !is IWebhookContainer)
                 return event.reply_("Can only run in channels with webhooks", ephemeral = true).queue()
+            if (!guild.selfMember.hasPermission(channel, Permission.MANAGE_WEBHOOKS))
+                return event.reply_("I require the permission to manage webhooks", ephemeral = true).queue()
 
             runDynamicHook(event, ephemeral = true) {
                 TransformData(post).use { data ->
