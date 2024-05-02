@@ -1,10 +1,8 @@
 package io.github.freya022.bot.link
 
-import dev.minn.jda.ktx.coroutines.await
 import io.github.freya022.bot.utils.SuspendAutoCloseable
 import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.entities.Message.Attachment
-import net.dv8tion.jda.api.utils.FileUpload
 import net.dv8tion.jda.api.utils.data.DataObject
 import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder
 import net.dv8tion.jda.api.utils.messages.MessageCreateData
@@ -49,9 +47,10 @@ class TransformData private constructor(
         return modified
     }
 
-    suspend fun buildMessage(): MessageCreateData {
-        val leftOverAttachments = leftOverAttachments.map { FileUpload.fromData(it.proxy.download().await(), it.fileName) }
-        builder.setFiles(leftOverAttachments + builder.attachments)
+    fun buildMessage(): MessageCreateData {
+        // Disabled, re-uploading attachments is pointless as they can't be suppressed from someone's message
+//        val leftOverAttachments = leftOverAttachments.map { FileUpload.fromData(it.proxy.download().await(), it.fileName) }
+//        builder.setFiles(leftOverAttachments + builder.attachments)
         return builder.build()
     }
 
