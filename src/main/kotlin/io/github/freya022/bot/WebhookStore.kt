@@ -8,7 +8,6 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import net.dv8tion.jda.api.entities.Icon
 import net.dv8tion.jda.api.entities.Webhook
-import net.dv8tion.jda.api.entities.channel.Channel
 import net.dv8tion.jda.api.entities.channel.attribute.IWebhookContainer
 
 @BService
@@ -18,7 +17,7 @@ class WebhookStore {
 
     suspend fun getWebhook(channel: IWebhookContainer) = lock.withLock {
         webhooks.getOrPut(channel.idLong) {
-            channel.retrieveWebhooks().await().find { it.name == getWebhookName(channel) }
+            channel.retrieveWebhooks().await().find { it.ownerAsUser?.idLong == channel.jda.selfUser.idLong }
                 ?: createWebhook(channel)
         }
     }
@@ -29,11 +28,8 @@ class WebhookStore {
             val iconType = Icon.IconType.fromExtension(effectiveAvatar.url.substringAfterLast('.', missingDelimiterValue = "jpeg"))
             Icon.from(bytes, iconType)
         }
-        return channel.createWebhook(getWebhookName(channel))
+        return channel.createWebhook(channel.jda.selfUser.effectiveName)
             .setAvatar(avatarIcon)
             .await()
     }
-
-    private fun getWebhookName(channel: Channel) =
-        channel.jda.selfUser.effectiveName
 }
