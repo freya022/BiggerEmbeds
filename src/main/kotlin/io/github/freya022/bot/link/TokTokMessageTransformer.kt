@@ -11,7 +11,7 @@ import java.io.ByteArrayOutputStream
 private val logger = KotlinLogging.logger { }
 
 @BService
-class TokTokLinkTransformer : LinkTransformer {
+class TokTokMessageTransformer : MessageTransformer {
     private val outputScope = namedDefaultScope("TokTok yt-dlp output", 2)
 
     override suspend fun processMessage(data: TransformData) {

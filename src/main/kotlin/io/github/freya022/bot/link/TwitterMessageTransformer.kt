@@ -6,7 +6,7 @@ import net.dv8tion.jda.api.interactions.components.buttons.Button
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 
 @BService
-data object TwitterLinkTransformer : LinkTransformer {
+data object TwitterMessageTransformer : MessageTransformer {
     private val replacedHosts = setOf("twitter.com", "x.com", "nitter.net", "vxtwitter.com")
 
     override suspend fun processMessage(data: TransformData) {

@@ -4,7 +4,7 @@ import io.github.freya022.botcommands.api.core.service.annotations.BService
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 
 @BService
-data object RedditLinkTransformer : LinkTransformer {
+data object RedditMessageTransformer : MessageTransformer {
     override suspend fun processMessage(data: TransformData) {
         val builder = data.builder
         val replaced = urlRegex.replace(builder.content) {

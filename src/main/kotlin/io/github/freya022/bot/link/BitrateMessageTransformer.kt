@@ -23,7 +23,7 @@ private const val maxBitrate: Long = 10 * 1024 * 1024
 private const val targetBitrate: Long = (7.5 * 1024 * 1024).toLong()
 
 @BService
-data object BitrateTransformer : LinkTransformer {
+data object BitrateMessageTransformer : MessageTransformer {
     override suspend fun processMessage(data: TransformData) {
         data.forEachRemainingAttachment { attachment ->
             if (!attachment.isVideo) return@forEachRemainingAttachment KEEP

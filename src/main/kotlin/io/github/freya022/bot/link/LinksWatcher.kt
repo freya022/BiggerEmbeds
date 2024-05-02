@@ -11,7 +11,7 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 @BService
 class LinksWatcher(
     private val webhookStore: WebhookStore,
-    private val linkTransformers: List<LinkTransformer>
+    private val messageTransformers: List<MessageTransformer>
 ) {
     @BEventListener
     suspend fun onMessage(event: MessageReceivedEvent) {
@@ -21,7 +21,7 @@ class LinksWatcher(
         if (channel !is IWebhookContainer) return
 
         val data = TransformData(event.message)
-        linkTransformers.forEach { it.processMessage(data) }
+        messageTransformers.forEach { it.processMessage(data) }
         if (!data.hasChanged) return
 
         webhookStore.getWebhook(channel)

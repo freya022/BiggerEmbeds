@@ -3,7 +3,7 @@ package io.github.freya022.bot.commands.slash
 import dev.minn.jda.ktx.coroutines.await
 import dev.minn.jda.ktx.messages.reply_
 import io.github.freya022.bot.WebhookStore
-import io.github.freya022.bot.link.LinkTransformer
+import io.github.freya022.bot.link.MessageTransformer
 import io.github.freya022.bot.link.TransformData
 import io.github.freya022.bot.utils.use
 import io.github.freya022.botcommands.api.commands.annotations.Command
@@ -30,7 +30,7 @@ import kotlin.time.Duration.Companion.milliseconds
 @Command
 class SlashPost(
     private val webhookStore: WebhookStore,
-    private val linkTransformers: List<LinkTransformer>
+    private val messageTransformers: List<MessageTransformer>
 ) : ApplicationCommand() {
     private val dynamicHookScope = namedDefaultScope("/post dynamic hook", 1)
 
@@ -47,7 +47,7 @@ class SlashPost(
 
             runDynamicHook(event, ephemeral = true) {
                 TransformData(post).use { data ->
-                    linkTransformers.forEach { it.processMessage(data) }
+                    messageTransformers.forEach { it.processMessage(data) }
                     val message = data.buildMessage()
 
                     webhookStore.getWebhook(channel)
@@ -69,7 +69,7 @@ class SlashPost(
             // Friends, GDMs and detached guilds
             TransformData(post).use { data ->
                 val message = runDynamicHook(event, ephemeral = false) {
-                    linkTransformers.forEach { it.processMessage(data) }
+                    messageTransformers.forEach { it.processMessage(data) }
                     data.buildMessage()
                 }
 
