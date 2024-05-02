@@ -12,6 +12,9 @@ import io.github.freya022.botcommands.api.commands.application.slash.GlobalSlash
 import io.github.freya022.botcommands.api.commands.application.slash.annotations.JDASlashCommand
 import io.github.freya022.botcommands.api.commands.application.slash.annotations.SlashOption
 import io.github.freya022.botcommands.api.commands.application.slash.annotations.TopLevelSlashCommandData
+import io.github.freya022.botcommands.api.core.entities.InputUser
+import io.github.freya022.botcommands.api.core.entities.asInputUser
+import io.github.freya022.botcommands.api.core.utils.deleteDelayed
 import io.github.freya022.botcommands.api.core.utils.namedDefaultScope
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
@@ -23,10 +26,12 @@ import net.dv8tion.jda.api.interactions.IntegrationType.USER_INSTALL
 import net.dv8tion.jda.api.interactions.InteractionContextType.GUILD
 import net.dv8tion.jda.api.interactions.InteractionContextType.PRIVATE_CHANNEL
 import net.dv8tion.jda.api.interactions.InteractionHook
+import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 @Command
 class SlashPost(
@@ -41,6 +46,10 @@ class SlashPost(
         integrationTypes = [GUILD_INSTALL, USER_INSTALL],
     )
     suspend fun onSlashPost(event: GlobalSlashEvent, @SlashOption(description = "The post content") post: String) {
+        postWithTransform(event, (event.member?.asInputUser() ?: event.user.asInputUser()), TransformData(post))
+    }
+
+    suspend fun postWithTransform(event: IReplyCallback, fakedUser: InputUser, data: TransformData): Unit = data.use {
         val guild = event.guild
         if (guild?.isDetached == false) {
             val channel = event.channel
@@ -49,45 +58,66 @@ class SlashPost(
             if (!guild.selfMember.hasPermission(channel, Permission.MANAGE_WEBHOOKS))
                 return event.reply_("I require the permission to manage webhooks", ephemeral = true).queue()
 
-            runDynamicHook(event, ephemeral = true) {
-                TransformData(post).use { data ->
-                    messageTransformers.forEach { it.processMessage(data) }
-                    val message = data.buildMessage()
+            val replied = runDynamicHook(event, ephemeral = true) {
+                messageTransformers.forEach { it.processMessage(data) }
+                val message = data.buildMessageOrNull() ?: return@runDynamicHook false
 
-                    webhookStore.getWebhook(channel)
-                        .sendMessage(message)
-                        .setUsername(event.member?.effectiveName ?: event.user.effectiveName)
-                        .setAvatarUrl(event.member?.effectiveAvatarUrl ?: event.user.effectiveName)
+                webhookStore.getWebhook(channel)
+                    .sendMessage(message)
+                    .setUsername(fakedUser.member?.effectiveName ?: fakedUser.effectiveName)
+                    .setAvatarUrl(fakedUser.member?.effectiveAvatarUrl ?: fakedUser.effectiveName)
+                    .await()
+                true
+            }
+
+            if (replied) {
+                if (event.isAcknowledged) {
+                    event.hook.deleteOriginal().queue()
+                } else {
+                    event.reply_("OK", ephemeral = true)
+                        .flatMap(InteractionHook::deleteOriginal)
+                        .queue()
+                }
+            } else {
+                if (event.isAcknowledged) {
+                    event.hook.sendMessage("No content to post")
+                        .deleteDelayed(5.seconds)
+                        .await()
+                } else {
+                    event.reply_("No content to post", ephemeral = true)
+                        .deleteDelayed(5.seconds)
                         .await()
                 }
             }
-
-            if (event.isAcknowledged) {
-                event.hook.deleteOriginal().queue()
-            } else {
-                event.reply_("OK", ephemeral = true)
-                    .flatMap(InteractionHook::deleteOriginal)
-                    .queue()
-            }
         } else {
             // Friends, GDMs and detached guilds
-            TransformData(post).use { data ->
-                val message = runDynamicHook(event, ephemeral = false) {
-                    messageTransformers.forEach { it.processMessage(data) }
-                    data.buildMessage()
-                }
+            val message = runDynamicHook(event, ephemeral = false) {
+                messageTransformers.forEach { it.processMessage(data) }
+                data.buildMessageOrNull()
+            }
 
+            if (message != null) {
                 if (event.isAcknowledged) {
-                    event.hook.sendMessage(message).queue()
+                    event.hook.sendMessage(message).await()
                 } else {
-                    event.reply(message).queue()
+                    event.reply(message).await()
+                }
+            } else {
+                if (event.isAcknowledged) {
+                    event.hook.sendMessage("No content to post")
+                        .deleteDelayed(5.seconds)
+                        .await()
+                } else {
+                    event.reply_("No content to post", ephemeral = true)
+                        .deleteDelayed(5.seconds)
+                        .await()
                 }
             }
         }
     }
 
     @OptIn(ExperimentalContracts::class)
-    private suspend inline fun <R> runDynamicHook(event: GlobalSlashEvent, ephemeral: Boolean, block: () -> R): R {
+    private suspend inline fun <R> runDynamicHook(event: IReplyCallback, ephemeral: Boolean, block: () -> R): R {
         contract {
             callsInPlace(block, InvocationKind.EXACTLY_ONCE)
         }

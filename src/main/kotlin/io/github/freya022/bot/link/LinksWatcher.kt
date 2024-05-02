@@ -4,9 +4,12 @@ import dev.minn.jda.ktx.coroutines.await
 import io.github.freya022.bot.WebhookStore
 import io.github.freya022.botcommands.api.core.annotations.BEventListener
 import io.github.freya022.botcommands.api.core.service.annotations.BService
+import io.github.oshai.kotlinlogging.KotlinLogging
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.channel.attribute.IWebhookContainer
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
+
+private val logger = KotlinLogging.logger { }
 
 @BService
 class LinksWatcher(
@@ -24,8 +27,10 @@ class LinksWatcher(
         messageTransformers.forEach { it.processMessage(data) }
         if (!data.hasChanged) return
 
+        val message = data.buildMessageOrNull()
+            ?: return logger.error { "How did we get an invalid message? ID: ${event.messageId}" }
         webhookStore.getWebhook(channel)
-            .sendMessage(data.buildMessage())
+            .sendMessage(message)
             .setUsername(event.member!!.effectiveName)
             .setAvatarUrl(event.member!!.effectiveAvatarUrl)
             .await()

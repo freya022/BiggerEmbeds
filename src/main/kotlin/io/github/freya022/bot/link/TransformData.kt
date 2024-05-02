@@ -47,11 +47,11 @@ class TransformData private constructor(
         return modified
     }
 
-    fun buildMessage(): MessageCreateData {
+    fun buildMessageOrNull(): MessageCreateData? {
         // Disabled, re-uploading attachments is pointless as they can't be suppressed from someone's message
 //        val leftOverAttachments = leftOverAttachments.map { FileUpload.fromData(it.proxy.download().await(), it.fileName) }
 //        builder.setFiles(leftOverAttachments + builder.attachments)
-        return builder.build()
+        return builder.tryBuild()
     }
 
     override suspend fun close() {
