@@ -1,4 +1,4 @@
-package io.github.freya022.bot.commands.slash
+package io.github.freya022.bot.commands.message
 
 import dev.minn.jda.ktx.coroutines.await
 import dev.minn.jda.ktx.messages.reply_
@@ -8,46 +8,50 @@ import io.github.freya022.bot.link.TransformData
 import io.github.freya022.bot.utils.runDynamicHook
 import io.github.freya022.botcommands.api.commands.annotations.Command
 import io.github.freya022.botcommands.api.commands.application.ApplicationCommand
-import io.github.freya022.botcommands.api.commands.application.slash.GlobalSlashEvent
-import io.github.freya022.botcommands.api.commands.application.slash.annotations.JDASlashCommand
-import io.github.freya022.botcommands.api.commands.application.slash.annotations.SlashOption
-import io.github.freya022.botcommands.api.commands.application.slash.annotations.TopLevelSlashCommandData
+import io.github.freya022.botcommands.api.commands.application.context.annotations.JDAMessageCommand
+import io.github.freya022.botcommands.api.commands.application.context.message.GuildMessageEvent
 import io.github.freya022.botcommands.api.core.entities.inputUser
+import io.github.freya022.botcommands.api.core.utils.deleteDelayed
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.channel.attribute.IWebhookContainer
-import net.dv8tion.jda.api.interactions.IntegrationType.GUILD_INSTALL
-import net.dv8tion.jda.api.interactions.IntegrationType.USER_INSTALL
-import net.dv8tion.jda.api.interactions.InteractionContextType.GUILD
-import net.dv8tion.jda.api.interactions.InteractionContextType.PRIVATE_CHANNEL
 import net.dv8tion.jda.api.utils.messages.MessageCreateData
+import kotlin.time.Duration.Companion.seconds
 
 @Command
-class SlashPost(
+class MessageRepost(
     private val webhookStore: WebhookStore,
     private val messageTransformers: List<MessageTransformer>,
 ) : ApplicationCommand() {
-    @JDASlashCommand(name = "post", description = "Send media with better embeds")
-    @TopLevelSlashCommandData(
-        contexts = [GUILD, PRIVATE_CHANNEL],
-        integrationTypes = [GUILD_INSTALL, USER_INSTALL],
-    )
-    suspend fun onSlashPost(event: GlobalSlashEvent, @SlashOption(description = "The post content") post: String) {
+    @JDAMessageCommand(name = "Repost")
+    suspend fun onMessageRepost(event: GuildMessageEvent) {
+        suspend fun sendNoContentMessage() {
+            if (event.isAcknowledged) {
+                event.hook.sendMessage("No content to post")
+                    .deleteDelayed(5.seconds)
+                    .await()
+            } else {
+                event.reply_("No content to post", ephemeral = true)
+                    .deleteDelayed(5.seconds)
+                    .await()
+            }
+        }
+
         suspend fun tryTransformMessage(ephemeral: Boolean, block: suspend (MessageCreateData) -> Unit) {
             val message = runDynamicHook(event, ephemeral) {
-                val data = TransformData(post)
+                val data = TransformData(event.target)
                 messageTransformers.forEach { it.processMessage(data) }
                 data.buildMessageOrNull()
             }
 
-            requireNotNull(message) {
-                "Message can only be valid"
-            }
+            if (message == null)
+                return sendNoContentMessage()
 
             block(message)
         }
 
         val guild = event.guild
-        if (guild?.isDetached == false) {
+        // Experiment with the output being the application command interaction
+        if (false && !guild.isDetached) {
             val channel = event.channel
             if (channel !is IWebhookContainer)
                 return event.reply_("Can only run in channels with webhooks", ephemeral = true).queue()
@@ -60,7 +64,7 @@ class SlashPost(
                     event.deferReply(true).queue()
                 }
 
-                val fakedUser = event.inputUser
+                val fakedUser = event.target.inputUser
                 webhookStore.getWebhook(channel)
                     .sendMessage(message)
                     .setUsername(fakedUser.effectiveName)

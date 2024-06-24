@@ -4,8 +4,8 @@ interface SuspendAutoCloseable {
     suspend fun close()
 }
 
-suspend inline fun <T : SuspendAutoCloseable> T.use(block: (T) -> Unit) {
-    try {
+suspend inline fun <T : SuspendAutoCloseable, R> T.use(block: (T) -> R): R {
+    return try {
         block(this)
     } finally {
         close()
