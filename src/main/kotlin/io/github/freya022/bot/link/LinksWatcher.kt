@@ -22,6 +22,8 @@ class LinksWatcher(
 
         val channel = event.channel
         if (channel !is IWebhookContainer) return
+        if (!event.guild.selfMember.hasPermission(channel, Permission.MANAGE_WEBHOOKS))
+            return logger.debug { "No debug perms in ${channel.getName()} (${channel.getId()})" }
 
         val data = TransformData(event.message)
         messageTransformers.forEach { it.processMessage(data) }
