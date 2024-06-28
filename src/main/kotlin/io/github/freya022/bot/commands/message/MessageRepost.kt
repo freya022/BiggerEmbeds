@@ -9,11 +9,15 @@ import io.github.freya022.bot.utils.runDynamicHook
 import io.github.freya022.botcommands.api.commands.annotations.Command
 import io.github.freya022.botcommands.api.commands.application.ApplicationCommand
 import io.github.freya022.botcommands.api.commands.application.context.annotations.JDAMessageCommand
-import io.github.freya022.botcommands.api.commands.application.context.message.GuildMessageEvent
+import io.github.freya022.botcommands.api.commands.application.context.message.GlobalMessageEvent
 import io.github.freya022.botcommands.api.core.entities.inputUser
 import io.github.freya022.botcommands.api.core.utils.deleteDelayed
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.channel.attribute.IWebhookContainer
+import net.dv8tion.jda.api.interactions.IntegrationType.GUILD_INSTALL
+import net.dv8tion.jda.api.interactions.IntegrationType.USER_INSTALL
+import net.dv8tion.jda.api.interactions.InteractionContextType.GUILD
+import net.dv8tion.jda.api.interactions.InteractionContextType.PRIVATE_CHANNEL
 import net.dv8tion.jda.api.utils.messages.MessageCreateData
 import kotlin.time.Duration.Companion.seconds
 
@@ -22,8 +26,12 @@ class MessageRepost(
     private val webhookStore: WebhookStore,
     private val messageTransformers: List<MessageTransformer>,
 ) : ApplicationCommand() {
-    @JDAMessageCommand(name = "Repost")
-    suspend fun onMessageRepost(event: GuildMessageEvent) {
+    @JDAMessageCommand(
+        name = "Repost",
+        contexts = [GUILD, PRIVATE_CHANNEL],
+        integrationTypes = [GUILD_INSTALL, USER_INSTALL],
+    )
+    suspend fun onMessageRepost(event: GlobalMessageEvent) {
         suspend fun sendNoContentMessage() {
             if (event.isAcknowledged) {
                 event.hook.sendMessage("No content to post")
@@ -51,7 +59,7 @@ class MessageRepost(
 
         val guild = event.guild
         // Experiment with the output being the application command interaction
-        if (false && !guild.isDetached) {
+        if (guild?.isDetached == false && false) {
             val channel = event.channel
             if (channel !is IWebhookContainer)
                 return event.reply_("Can only run in channels with webhooks", ephemeral = true).queue()
