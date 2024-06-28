@@ -81,11 +81,14 @@ data object BitrateMessageTransformer : MessageTransformer {
             .redirectOutputs(outputStream, errorStream)
             .waitFor(logger, outputStream, errorStream)
 
+        val decodedOutputBytes = outputStream.toByteArray()
+        val decodedOutput = decodedOutputBytes.decodeToString().trim()
         try {
-            outputStream.toByteArray().decodeToString().trim().toLong().bits
+            decodedOutput.toLong().bits
         } catch (e: Exception) {
             logger.error { "Could not get bit rate from $url" }
-            logger.error { "Decoded output: '${outputStream.toByteArray().decodeToString().trim()}'" }
+            logger.error { "Decoded output: '$decodedOutput'" }
+            logger.error { "Decoded output bytes: '${decodedOutputBytes.contentToString()}'" }
             printOutputs(logger, outputStream, errorStream)
             throw e
         }
