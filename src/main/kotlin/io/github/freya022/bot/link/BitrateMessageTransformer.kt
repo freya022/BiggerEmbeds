@@ -2,6 +2,12 @@ package io.github.freya022.bot.link
 
 import io.github.freya022.bot.link.TransformData.AttachmentResult.KEEP
 import io.github.freya022.bot.link.TransformData.AttachmentResult.REMOVE
+import io.github.freya022.bot.utils.Size
+import io.github.freya022.bot.utils.Size.Companion.bits
+import io.github.freya022.bot.utils.Size.Companion.bytes
+import io.github.freya022.bot.utils.Size.Companion.kilobits
+import io.github.freya022.bot.utils.Size.Companion.megabits
+import io.github.freya022.bot.utils.Size.Companion.megabytes
 import io.github.freya022.bot.utils.printOutputs
 import io.github.freya022.bot.utils.redirectOutputs
 import io.github.freya022.bot.utils.waitFor
@@ -17,23 +23,40 @@ import kotlin.io.path.absolutePathString
 import kotlin.io.path.createTempFile
 import kotlin.io.path.deleteIfExists
 import kotlin.io.path.fileSize
+import kotlin.time.DurationUnit
+import kotlin.time.measureTimedValue
 
 private val logger = KotlinLogging.logger { }
-private const val maxBitrate: Long = 10 * 1024 * 1024
-private const val targetBitrate: Long = (7.5 * 1024 * 1024).toLong()
+private val maxBitrate = 15.megabits
+private val targetBitrate = 7500.kilobits
 
 @BService
 data object BitrateMessageTransformer : MessageTransformer {
     override suspend fun processMessage(data: TransformData) {
         data.forEachRemainingAttachment { attachment ->
             if (!attachment.isVideo) return@forEachRemainingAttachment KEEP
+            if (attachment.size.bytes > 100.megabytes) return@forEachRemainingAttachment KEEP
 
             val url = attachment.proxyUrl
-            if (getClipBitRate(url) <= maxBitrate) return@forEachRemainingAttachment KEEP
+            val clipBitRate = getClipBitRate(url)
+            if (clipBitRate <= maxBitrate) return@forEachRemainingAttachment KEEP
 
-            val tmpPath = shrinkClip(url)
+            // clip bit rate = clip size
+            // shrunk bit rate = ?
+            val plannedSize = targetBitrate * attachment.size.bytes / clipBitRate
+            if (plannedSize > Message.MAX_FILE_SIZE.bytes) {
+                logger.debug { "Not reducing clip due to exceeded planned size of $plannedSize : ${attachment.proxyUrl}" }
+                return@forEachRemainingAttachment KEEP
+            }
+
+            val (tmpPath, duration) = measureTimedValue { shrinkClip(url) }
             withContext(Dispatchers.IO) {
-                if (tmpPath.fileSize() > Message.MAX_FILE_SIZE) return@withContext
+                val fileSize = tmpPath.fileSize().bytes
+                if (fileSize > Message.MAX_FILE_SIZE.bytes) {
+                    logger.debug { "Not sending shrunk clip as it is larger than expected ($fileSize) : " }
+                    return@withContext
+                }
+                logger.debug { "Shrunk file from ${attachment.size.bytes} to $fileSize in ${duration.toString(DurationUnit.SECONDS, decimals = 3)}" }
                 data.builder.addFiles(FileUpload.fromData(tmpPath, attachment.fileName))
             }
             data.addCallback { withContext(Dispatchers.IO) { tmpPath.deleteIfExists() } }
@@ -42,7 +65,7 @@ data object BitrateMessageTransformer : MessageTransformer {
         }
     }
 
-    private suspend fun getClipBitRate(url: String): Long = withContext(Dispatchers.IO) {
+    private suspend fun getClipBitRate(url: String): Size = withContext(Dispatchers.IO) {
         val outputStream = ByteArrayOutputStream()
         val errorStream = ByteArrayOutputStream()
         ProcessBuilder()
@@ -59,7 +82,7 @@ data object BitrateMessageTransformer : MessageTransformer {
             .waitFor(logger, outputStream, errorStream)
 
         try {
-            outputStream.toByteArray().decodeToString().trim().toLong()
+            outputStream.toByteArray().decodeToString().trim().toLong().bits
         } catch (e: Exception) {
             logger.error { "Could not get bit rate from $url" }
             logger.error { "Decoded output: '${outputStream.toByteArray().decodeToString().trim()}'" }
@@ -78,9 +101,10 @@ data object BitrateMessageTransformer : MessageTransformer {
                 "ffmpeg", "-y", // Overwrite as the output file is already created
                 "-i", url,
                 "-c:v", "libx264",
-                "-b:v", targetBitrate.toString(),
+                "-b:v", targetBitrate.bits.toString(),
                 "-movflags", "faststart",
-                "-vf", "scale=1920:-1",
+                "-preset", "superfast",
+                "-vf", "scale='min(iw,1920)':-1",
                 "-c:a", "copy",
                 tempFile.absolutePathString()
             )
