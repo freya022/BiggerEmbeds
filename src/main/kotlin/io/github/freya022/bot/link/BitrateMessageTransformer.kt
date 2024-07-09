@@ -9,7 +9,6 @@ import io.github.freya022.bot.utils.Size.Companion.kilobits
 import io.github.freya022.bot.utils.Size.Companion.megabits
 import io.github.freya022.bot.utils.Size.Companion.megabytes
 import io.github.freya022.bot.utils.printOutputs
-import io.github.freya022.bot.utils.redirectOutputs
 import io.github.freya022.bot.utils.waitFor
 import io.github.freya022.botcommands.api.core.service.annotations.BService
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -78,17 +77,12 @@ data object BitrateMessageTransformer : MessageTransformer {
                 url
             )
             .start()
-            .redirectOutputs(outputStream, errorStream)
             .waitFor(logger, outputStream, errorStream)
 
-        val decodedOutputBytes = outputStream.toByteArray()
-        val decodedOutput = decodedOutputBytes.decodeToString().trim()
         try {
-            decodedOutput.toLong().bits
+            outputStream.toByteArray().decodeToString().trim().toLong().bits
         } catch (e: Exception) {
             logger.error { "Could not get bit rate from $url" }
-            logger.error { "Decoded output: '$decodedOutput'" }
-            logger.error { "Decoded output bytes: '${decodedOutputBytes.contentToString()}'" }
             printOutputs(logger, outputStream, errorStream)
             throw e
         }
@@ -112,7 +106,6 @@ data object BitrateMessageTransformer : MessageTransformer {
                 tempFile.absolutePathString()
             )
             .start()
-            .redirectOutputs(outputStream, errorStream)
             .waitFor(logger, outputStream, errorStream)
 
         tempFile
