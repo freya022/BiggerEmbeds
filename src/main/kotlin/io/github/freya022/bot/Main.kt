@@ -64,11 +64,6 @@ object Main {
                     // Guilds in which `@Test` commands will be inserted
                     testGuildIds += config.testGuildIds
                 }
-
-                components {
-                    // Enables usage of components
-                    useComponents = true
-                }
             }
 
             // There is no JDABuilder going on here, it's taken care of in Bot

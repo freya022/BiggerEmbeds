@@ -7,16 +7,11 @@ import java.nio.file.Path
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.readText
 
-data class DatabaseConfig(val serverName: String, val port: Int, val name: String, val user: String, val password: String) {
-    val url: String
-        get() = "jdbc:postgresql://$serverName:$port/$name"
-}
 
 data class Config(val token: String,
                   val ownerIds: List<Long>,
                   val prefixes: List<String>,
                   val testGuildIds: List<Long>,
-                  val databaseConfig: DatabaseConfig
 ) {
     companion object {
         private val logger = KotlinLogging.logger { }
