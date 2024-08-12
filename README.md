@@ -4,7 +4,7 @@ A Discord bot (re)posting messages with social media links, with better embeds.
 A `/post` command can be used to avoid duplicate messages.
 
 ## Supported social medias
-* Twitter (uses `vxtwitter`, adds a `Nitter` button)
+* Twitter (uses `fxtwitter`)
 * Reddit (uses [`rxddit`](https://github.com/MinnDevelopment/fxreddit))
 * TikTok (re-uploads the video)
 

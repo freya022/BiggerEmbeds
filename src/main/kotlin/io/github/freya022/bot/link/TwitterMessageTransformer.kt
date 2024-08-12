@@ -7,7 +7,8 @@ import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 
 @BService
 data object TwitterMessageTransformer : MessageTransformer {
-    private val replacedHosts = setOf("twitter.com", "x.com", "nitter.net", "vxtwitter.com")
+    private const val targetHost = "fxtwitter.com"
+    private val replacedHosts = setOf("twitter.com", "x.com", "nitter.net", "vxtwitter.com", "fxtwitter.com", "fixupx.com")
 
     override suspend fun processMessage(data: TransformData) {
         val builder = data.builder
@@ -18,7 +19,7 @@ data object TwitterMessageTransformer : MessageTransformer {
 
             httpUrl
                 .newBuilder()
-                .host("vxtwitter.com")
+                .host(targetHost)
                 .query(null)
                 .fragment(null)
                 .toString()
@@ -27,20 +28,20 @@ data object TwitterMessageTransformer : MessageTransformer {
 
         if (urls.isEmpty()) return
 
-        fun String.asNitterUrl() = replaceFirst("vxtwitter.com", "nitter.net")
-        fun String.asTwitterUrl() = replaceFirst("vxtwitter.com", "twitter.com")
+        fun String.asTwitterUrl() = replaceFirst(targetHost, "twitter.com")
+        fun String.asXUrl() = replaceFirst(targetHost, "x.com")
 
         builder.setContent(replaced)
         if (urls.size == 1) {
             builder.addActionRow(
-                Button.link(urls.first().asNitterUrl(), "See on Nitter"),
-                Button.link(urls.first().asTwitterUrl(), "See on Twitter")
+                Button.link(urls.first().asTwitterUrl(), "See on Twitter"),
+                Button.link(urls.first().asXUrl(), "See on X"),
             )
         } else {
             val buttons = urls.flatMapIndexed { i, url ->
                 listOf(
-                    Button.link(url.asNitterUrl(), "See #${i + 1} on Nitter"),
-                    Button.link(url.asTwitterUrl(), "See #${i + 1} on Twitter")
+                    Button.link(url.asTwitterUrl(), "See #${i + 1} on Twitter"),
+                    Button.link(url.asXUrl(), "See #${i + 1} on X"),
                 )
             }
             builder.addComponents(buttons.chunked(4) { it.row() }.take(5))
