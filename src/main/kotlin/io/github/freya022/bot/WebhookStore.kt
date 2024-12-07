@@ -36,8 +36,8 @@ class WebhookStore {
             .getOrThrow()
     }
 
-    private suspend fun getWebhook(channel: IWebhookContainer) = lock.withLock {
-        webhooks.getOrPut(channel.idLong) {
+    private suspend fun getWebhook(channel: IWebhookContainer): Webhook {
+        return webhooks.getOrPut(channel.idLong) {
             channel.retrieveWebhooks().await().find { it.ownerAsUser?.idLong == channel.jda.selfUser.idLong }
                 ?: createWebhook(channel)
         }
