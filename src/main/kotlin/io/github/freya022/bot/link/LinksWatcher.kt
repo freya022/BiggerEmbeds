@@ -31,11 +31,11 @@ class LinksWatcher(
 
         val message = data.buildMessageOrNull()
             ?: return logger.error { "How did we get an invalid message? ID: ${event.messageId}" }
-        webhookStore.getWebhook(channel)
-            .sendMessage(message)
-            .setUsername(event.member!!.effectiveName)
-            .setAvatarUrl(event.member!!.effectiveAvatarUrl)
-            .await()
+        webhookStore.sendMessage(channel) { webhook ->
+            webhook.sendMessage(message)
+                .setUsername(event.member!!.effectiveName)
+                .setAvatarUrl(event.member!!.effectiveAvatarUrl)
+        }
 
         if (event.guild.selfMember.hasPermission(Permission.MESSAGE_MANAGE)) {
             event.message.suppressEmbeds(true).await()

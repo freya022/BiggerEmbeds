@@ -61,11 +61,11 @@ class SlashPost(
                 }
 
                 val fakedUser = event.inputUser
-                webhookStore.getWebhook(channel)
-                    .sendMessage(message)
-                    .setUsername(fakedUser.effectiveName)
-                    .setAvatarUrl(fakedUser.effectiveAvatarUrl)
-                    .await()
+                webhookStore.sendMessage(channel) { webhook ->
+                    webhook.sendMessage(message)
+                        .setUsername(fakedUser.effectiveName)
+                        .setAvatarUrl(fakedUser.effectiveAvatarUrl)
+                }
 
                 event.hook.deleteOriginal().queue()
             }
