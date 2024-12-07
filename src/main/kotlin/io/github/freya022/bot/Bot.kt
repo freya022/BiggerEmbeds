@@ -1,9 +1,9 @@
 package io.github.freya022.bot
 
-import dev.minn.jda.ktx.jdabuilder.light
 import io.github.freya022.bot.config.Config
 import io.github.freya022.botcommands.api.core.JDAService
 import io.github.freya022.botcommands.api.core.events.BReadyEvent
+import io.github.freya022.botcommands.api.core.light
 import io.github.freya022.botcommands.api.core.service.annotations.BService
 import io.github.freya022.botcommands.api.core.utils.enumSetOf
 import net.dv8tion.jda.api.entities.Activity
@@ -13,6 +13,7 @@ import net.dv8tion.jda.api.utils.cache.CacheFlag
 
 @BService
 class Bot(private val config: Config) : JDAService() {
+
     override val intents: Set<GatewayIntent> = enumSetOf(
         GatewayIntent.DIRECT_MESSAGES /* JDA falsely says both intents are required */,
         GatewayIntent.GUILD_MESSAGES,
@@ -22,11 +23,8 @@ class Bot(private val config: Config) : JDAService() {
     override val cacheFlags: Set<CacheFlag> = emptySet()
 
     override fun createJDA(event: BReadyEvent, eventManager: IEventManager) {
-        // You MUST disable enableCoroutines and set the event manager to the injected one
-        light(config.token, intents = intents, enableCoroutines = false) {
-            enableCache(cacheFlags)
-            setActivity(Activity.customStatus("I need more bullets"))
-            setEventManager(eventManager)
+        light(config.token, activity = Activity.customStatus("I need more bullets")) {
+
         }
     }
 }

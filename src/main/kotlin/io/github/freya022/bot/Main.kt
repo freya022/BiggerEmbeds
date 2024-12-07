@@ -1,11 +1,13 @@
 package io.github.freya022.bot
 
-import dev.reformator.stacktracedecoroutinator.runtime.DecoroutinatorRuntime
+import dev.reformator.stacktracedecoroutinator.jvm.DecoroutinatorJvmApi
 import io.github.freya022.bot.config.Config
 import io.github.freya022.bot.config.Environment
 import io.github.freya022.botcommands.api.core.BotCommands
 import io.github.freya022.botcommands.api.core.config.DevConfig
+import io.github.freya022.botcommands.api.core.utils.enumSetOf
 import io.github.oshai.kotlinlogging.KotlinLogging
+import net.dv8tion.jda.api.requests.GatewayIntent
 import java.lang.management.ManagementFactory
 import kotlin.io.path.absolutePathString
 import kotlin.system.exitProcess
@@ -32,7 +34,7 @@ object Main {
             } else if ("--no-decoroutinator" in args) {
                 logger.info { "Skipping stacktrace-decoroutinator as --no-decoroutinator is specified" }
             } else {
-                DecoroutinatorRuntime.load()
+                DecoroutinatorJvmApi.install()
             }
 
             val config = Config.instance
@@ -58,12 +60,16 @@ object Main {
                     // This is only useful during development,
                     // as you can develop on multiple machines (but not simultaneously!).
                     // Using this in production is only going to waste API requests.
-                    @OptIn(DevConfig::class)
-                    onlineAppCommandCheckEnabled = Environment.isDev
+                    fileCache {
+                        @OptIn(DevConfig::class)
+                        checkOnline = Environment.isDev
+                    }
 
                     // Guilds in which `@Test` commands will be inserted
                     testGuildIds += config.testGuildIds
                 }
+
+                ignoredIntents += enumSetOf(GatewayIntent.DIRECT_MESSAGES)
             }
 
             // There is no JDABuilder going on here, it's taken care of in Bot
