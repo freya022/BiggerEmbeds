@@ -118,9 +118,9 @@
 
         <!-- JDA and BotCommands-->
         <dependency>
-            <groupId>io.github.JDA-Fork</groupId>
+            <groupId>net.dv8tion</groupId>
             <artifactId>JDA</artifactId>
-            <version>26459f08fc</version>
+            <version>5.3.0</version>
             <exclusions>
                 <exclusion>
                     <groupId>club.minnced</groupId>
@@ -131,7 +131,7 @@
         <dependency>
             <groupId>io.github.freya022</groupId>
             <artifactId>BotCommands</artifactId>
-            <version>ffd0e6e262</version>
+            <version>3.0.0-beta.1</version>
         </dependency>
 
         <!-- Needed for JDA and BotCommands logging -->
