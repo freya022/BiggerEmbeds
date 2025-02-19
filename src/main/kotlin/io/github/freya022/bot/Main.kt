@@ -5,9 +5,7 @@ import io.github.freya022.bot.config.Config
 import io.github.freya022.bot.config.Environment
 import io.github.freya022.botcommands.api.core.BotCommands
 import io.github.freya022.botcommands.api.core.config.DevConfig
-import io.github.freya022.botcommands.api.core.utils.enumSetOf
 import io.github.oshai.kotlinlogging.KotlinLogging
-import net.dv8tion.jda.api.requests.GatewayIntent
 import java.lang.management.ManagementFactory
 import kotlin.io.path.absolutePathString
 import kotlin.system.exitProcess
@@ -68,8 +66,6 @@ object Main {
                     // Guilds in which `@Test` commands will be inserted
                     testGuildIds += config.testGuildIds
                 }
-
-                ignoredIntents += enumSetOf(GatewayIntent.DIRECT_MESSAGES)
             }
 
             // There is no JDABuilder going on here, it's taken care of in Bot

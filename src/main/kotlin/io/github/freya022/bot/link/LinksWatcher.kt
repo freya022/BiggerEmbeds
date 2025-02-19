@@ -8,6 +8,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.channel.attribute.IWebhookContainer
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
+import net.dv8tion.jda.api.requests.GatewayIntent
 
 private val logger = KotlinLogging.logger { }
 
@@ -16,7 +17,8 @@ class LinksWatcher(
     private val webhookStore: WebhookStore,
     private val messageTransformers: List<MessageTransformer>
 ) {
-    @BEventListener
+
+    @BEventListener(ignoredIntents = [GatewayIntent.DIRECT_MESSAGES])
     suspend fun onMessage(event: MessageReceivedEvent) {
         if (event.author.isBot || event.isWebhookMessage || event.message.type.isSystem) return
 
