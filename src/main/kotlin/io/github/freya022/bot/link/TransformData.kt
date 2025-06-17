@@ -20,7 +20,7 @@ class TransformData private constructor(
     }
 
     constructor(builder: MessageCreateBuilder, originalAttachments: MutableList<Attachment>) : this(builder.tryBuild()?.toData(), builder, originalAttachments)
-    constructor(message: Message) : this(MessageCreateBuilder.fromMessage(message), message.attachments.toMutableList())
+    constructor(message: Message) : this(MessageCreateBuilder.fromMessage(message).setEmbeds(), message.attachments.toMutableList())
     constructor(content: String) : this(MessageCreateBuilder().setContent(content), mutableListOf())
 
     private val leftOverAttachments: List<Attachment> get() = originalAttachments
