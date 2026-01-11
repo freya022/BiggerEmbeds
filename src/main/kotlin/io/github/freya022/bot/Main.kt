@@ -1,5 +1,6 @@
 package io.github.freya022.bot
 
+import ch.qos.logback.classic.ClassicConstants as LogbackConstants
 import dev.reformator.stacktracedecoroutinator.jvm.DecoroutinatorJvmApi
 import io.github.freya022.bot.config.Config
 import io.github.freya022.bot.config.Environment
@@ -9,7 +10,6 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import java.lang.management.ManagementFactory
 import kotlin.io.path.absolutePathString
 import kotlin.system.exitProcess
-import ch.qos.logback.classic.ClassicConstants as LogbackConstants
 
 private val logger by lazy { KotlinLogging.logger {} } // Must not load before system property is set
 
@@ -65,6 +65,10 @@ object Main {
 
                     // Guilds in which `@Test` commands will be inserted
                     testGuildIds += config.testGuildIds
+                }
+
+                coroutineScopes {
+                    eventManagerScopeFactory = defaultFactory("BiggerEmbeds Coroutine", 4)
                 }
             }
 

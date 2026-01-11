@@ -1,7 +1,8 @@
 package io.github.freya022.bot.commands.message
 
-import dev.minn.jda.ktx.coroutines.await
-import dev.minn.jda.ktx.messages.reply_
+import dev.freya02.botcommands.jda.ktx.coroutines.await
+import dev.freya02.botcommands.jda.ktx.messages.deleteDelayed
+import dev.freya02.botcommands.jda.ktx.messages.reply_
 import io.github.freya022.bot.WebhookStore
 import io.github.freya022.bot.link.MessageTransformer
 import io.github.freya022.bot.link.TransformData
@@ -11,7 +12,6 @@ import io.github.freya022.botcommands.api.commands.application.ApplicationComman
 import io.github.freya022.botcommands.api.commands.application.context.annotations.JDAMessageCommand
 import io.github.freya022.botcommands.api.commands.application.context.message.GlobalMessageEvent
 import io.github.freya022.botcommands.api.core.entities.inputUser
-import io.github.freya022.botcommands.api.core.utils.deleteDelayed
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.channel.attribute.IWebhookContainer
 import net.dv8tion.jda.api.interactions.IntegrationType.GUILD_INSTALL

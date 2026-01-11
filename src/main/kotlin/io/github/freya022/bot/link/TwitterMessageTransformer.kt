@@ -1,8 +1,8 @@
 package io.github.freya022.bot.link
 
-import dev.minn.jda.ktx.interactions.components.row
+import dev.freya02.botcommands.jda.ktx.components.row
 import io.github.freya022.botcommands.api.core.service.annotations.BService
-import net.dv8tion.jda.api.interactions.components.buttons.Button
+import net.dv8tion.jda.api.components.buttons.Button
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 
 @BService
@@ -33,9 +33,11 @@ data object TwitterMessageTransformer : MessageTransformer {
 
         builder.setContent(replaced)
         if (urls.size == 1) {
-            builder.addActionRow(
-                Button.link(urls.first().asTwitterUrl(), "See on Twitter"),
-                Button.link(urls.first().asXUrl(), "See on X"),
+            builder.addComponents(
+                row(
+                    Button.link(urls.first().asTwitterUrl(), "See on Twitter"),
+                    Button.link(urls.first().asXUrl(), "See on X"),
+                )
             )
         } else {
             val buttons = urls.flatMapIndexed { i, url ->

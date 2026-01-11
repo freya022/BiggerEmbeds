@@ -1,6 +1,6 @@
 package io.github.freya022.bot.utils
 
-import dev.minn.jda.ktx.coroutines.await
+import dev.freya02.botcommands.jda.ktx.coroutines.await
 import io.github.freya022.botcommands.api.core.utils.namedDefaultScope
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay

@@ -1,10 +1,11 @@
 package io.github.freya022.bot
 
-import dev.minn.jda.ktx.coroutines.await
+import dev.freya02.botcommands.jda.ktx.coroutines.await
+import dev.freya02.botcommands.jda.ktx.requests.awaitCatching
+import dev.freya02.botcommands.jda.ktx.requests.handle
 import io.github.freya022.botcommands.api.core.service.annotations.BService
-import io.github.freya022.botcommands.api.core.utils.awaitCatching
-import io.github.freya022.botcommands.api.core.utils.handle
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.future.await as futureAwait
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -14,7 +15,6 @@ import net.dv8tion.jda.api.entities.Webhook
 import net.dv8tion.jda.api.entities.channel.attribute.IWebhookContainer
 import net.dv8tion.jda.api.requests.ErrorResponse
 import net.dv8tion.jda.api.requests.RestAction
-import kotlinx.coroutines.future.await as futureAwait
 
 @BService
 class WebhookStore {
