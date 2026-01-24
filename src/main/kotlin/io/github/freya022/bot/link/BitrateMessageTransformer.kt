@@ -56,7 +56,7 @@ data object BitrateMessageTransformer : MessageTransformer {
                     return@withContext
                 }
                 logger.debug { "Shrunk file from ${attachment.size.bytes} to $fileSize in ${duration.toString(DurationUnit.SECONDS, decimals = 3)}" }
-                data.builder.addFiles(FileUpload.fromData(tmpPath, attachment.fileName))
+                data.addFiles(FileUpload.fromData(tmpPath, attachment.fileName))
             }
             data.addCallback { withContext(Dispatchers.IO) { tmpPath.deleteIfExists() } }
 

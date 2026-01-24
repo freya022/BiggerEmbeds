@@ -9,6 +9,7 @@ import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.channel.attribute.IWebhookContainer
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.requests.GatewayIntent
+import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder
 
 private val logger = KotlinLogging.logger { }
 
@@ -25,14 +26,14 @@ class LinksWatcher(
         val channel = event.channel
         if (channel !is IWebhookContainer) return
         if (!event.guild.selfMember.hasPermission(channel, Permission.MANAGE_WEBHOOKS))
-            return logger.debug { "No debug perms in ${channel.name} (${channel.id})" }
+            return logger.debug { "No webhook perms in ${channel.name} (${channel.id})" }
 
-        val data = TransformData(event.message)
-        messageTransformers.forEach { it.processMessage(data) }
-        if (!data.hasChanged) return
+        val message = MessageTransformers.transformMessage(
+            MessageCreateBuilder.fromMessage(event.message),
+            event.message.attachments,
+            messageTransformers
+        ) ?: return
 
-        val message = data.buildMessageOrNull()
-            ?: return logger.error { "How did we get an invalid message? ID: ${event.messageId}" }
         webhookStore.sendMessage(channel) { webhook ->
             webhook.sendMessage(message)
                 .setUsername(event.member!!.effectiveName)

@@ -8,9 +8,8 @@ import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 @BService
 data object RedditMessageTransformer : MessageTransformer {
     override suspend fun processMessage(data: TransformData) {
-        val builder = data.builder
         val urls = arrayListOf<String>()
-        val replaced = urlRegex.replace(builder.content) {
+        val replaced = urlRegex.replace(data.content) {
             val httpUrl = it.value.toHttpUrlOrNull() ?: return@replace it.value
             if (!httpUrl.host.endsWith("reddit.com") && !httpUrl.host.endsWith("rxddit.com")) return@replace it.value
 
@@ -27,9 +26,9 @@ data object RedditMessageTransformer : MessageTransformer {
 
         fun String.asRedditUrl() = replaceFirst("rxddit.com", "reddit.com")
 
-        builder.setContent(replaced)
+        data.setContent(replaced)
         if (urls.size == 1) {
-            builder.addComponents(
+            data.addComponents(
                 row(Button.link(urls.first().asRedditUrl(), "See on Reddit")),
             )
         } else {
@@ -38,7 +37,7 @@ data object RedditMessageTransformer : MessageTransformer {
                     Button.link(url.asRedditUrl(), "See #${i + 1} on Reddit"),
                 )
             }
-            builder.addComponents(buttons.chunked(4) { it.row() }.take(5))
+            data.addComponents(buttons.chunked(4) { it.row() }.take(5))
         }
     }
 }

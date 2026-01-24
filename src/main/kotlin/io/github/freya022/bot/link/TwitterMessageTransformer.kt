@@ -11,9 +11,8 @@ data object TwitterMessageTransformer : MessageTransformer {
     private val replacedHosts = setOf("twitter.com", "x.com", "nitter.net", "vxtwitter.com", "fxtwitter.com", "fixupx.com")
 
     override suspend fun processMessage(data: TransformData) {
-        val builder = data.builder
         val urls = arrayListOf<String>()
-        val replaced = urlRegex.replace(builder.content) {
+        val replaced = urlRegex.replace(data.content) {
             val httpUrl = it.value.toHttpUrlOrNull() ?: return@replace it.value
             if (httpUrl.host !in replacedHosts) return@replace it.value
 
@@ -31,9 +30,9 @@ data object TwitterMessageTransformer : MessageTransformer {
         fun String.asTwitterUrl() = replaceFirst(targetHost, "twitter.com")
         fun String.asXUrl() = replaceFirst(targetHost, "x.com")
 
-        builder.setContent(replaced)
+        data.setContent(replaced)
         if (urls.size == 1) {
-            builder.addComponents(
+            data.addComponents(
                 row(
                     Button.link(urls.first().asTwitterUrl(), "See on Twitter"),
                     Button.link(urls.first().asXUrl(), "See on X"),
@@ -46,7 +45,7 @@ data object TwitterMessageTransformer : MessageTransformer {
                     Button.link(url.asXUrl(), "See #${i + 1} on X"),
                 )
             }
-            builder.addComponents(buttons.chunked(4) { it.row() }.take(5))
+            data.addComponents(buttons.chunked(4) { it.row() }.take(5))
         }
     }
 }

@@ -15,9 +15,8 @@ class TokTokMessageTransformer : MessageTransformer {
     private val outputScope = namedDefaultScope("TokTok yt-dlp output", 2)
 
     override suspend fun processMessage(data: TransformData) {
-        val builder = data.builder
         val files = arrayListOf<FileUpload>()
-        val replaced = urlRegex.replace(builder.content) { matchResult ->
+        val replaced = urlRegex.replace(data.content) { matchResult ->
             val url = matchResult.value
             val httpUrl = url.toHttpUrlOrNull() ?: return@replace url
             if (httpUrl.host != "vm.tiktok.com" && httpUrl.host != "www.tiktok.com") return@replace url
@@ -46,7 +45,7 @@ class TokTokMessageTransformer : MessageTransformer {
 
         if (files.isEmpty()) return
 
-        builder.setContent(replaced)
-        builder.addFiles(files)
+        data.setContent(replaced)
+        data.addFiles(files)
     }
 }
