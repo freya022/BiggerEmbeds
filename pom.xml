@@ -21,7 +21,7 @@
         <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
 
         <flyway.version>11.20.1</flyway.version>
-        <BotCommands.version>3.0.0-beta.7</BotCommands.version>
+        <BotCommands.version>3.0.0-beta.8</BotCommands.version>
     </properties>
 
     <build>
@@ -116,7 +116,7 @@
         <dependency>
             <groupId>net.dv8tion</groupId>
             <artifactId>JDA</artifactId>
-            <version>6.2.1</version>
+            <version>6.3.0</version>
             <exclusions>
                 <exclusion>
                     <groupId>club.minnced</groupId>

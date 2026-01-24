@@ -3,7 +3,6 @@ package io.github.freya022.bot.commands.message
 import dev.freya02.botcommands.jda.ktx.messages.reply_
 import io.github.freya022.bot.commands.CommonPost
 import io.github.freya022.botcommands.api.commands.annotations.Command
-import io.github.freya022.botcommands.api.commands.application.ApplicationCommand
 import io.github.freya022.botcommands.api.commands.application.context.annotations.JDAMessageCommand
 import io.github.freya022.botcommands.api.commands.application.context.message.GlobalMessageEvent
 import net.dv8tion.jda.api.interactions.IntegrationType.GUILD_INSTALL
@@ -15,7 +14,7 @@ import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder
 @Command
 class MessageRepost(
     private val commonPost: CommonPost,
-) : ApplicationCommand() {
+) {
 
     @JDAMessageCommand(
         name = "Repost",
