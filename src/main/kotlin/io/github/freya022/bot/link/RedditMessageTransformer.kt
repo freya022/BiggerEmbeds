@@ -12,7 +12,7 @@ data object RedditMessageTransformer : MessageTransformer {
         val urls = arrayListOf<String>()
         val replaced = urlRegex.replace(builder.content) {
             val httpUrl = it.value.toHttpUrlOrNull() ?: return@replace it.value
-            if (!httpUrl.host.endsWith("reddit.com")) return@replace it.value
+            if (!httpUrl.host.endsWith("reddit.com") && !httpUrl.host.endsWith("rxddit.com")) return@replace it.value
 
             httpUrl
                 .newBuilder()
