@@ -1,25 +1,48 @@
 package io.github.freya022.bot.commands.text
 
-import io.github.freya022.botcommands.api.commands.annotations.Command
-import io.github.freya022.botcommands.api.commands.text.BaseCommandEvent
-import io.github.freya022.botcommands.api.commands.text.annotations.Hidden
-import io.github.freya022.botcommands.api.commands.text.annotations.JDATextCommandVariation
-import io.github.freya022.botcommands.api.commands.text.annotations.RequireOwner
-import io.github.freya022.botcommands.api.commands.text.annotations.TextOption
+import dev.freya02.botcommands.jda.ktx.durations.timeout
+import dev.freya02.jda.emojis.unicode.UnicodeEmojis
+import io.github.freya022.botcommands.api.core.BotOwners
+import io.github.freya022.botcommands.api.core.annotations.BEventListener
+import io.github.freya022.botcommands.api.core.service.annotations.BService
 import io.github.oshai.kotlinlogging.KotlinLogging
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import kotlin.system.exitProcess
+import kotlin.time.Duration.Companion.seconds
 
 private val logger = KotlinLogging.logger { }
 
-@Command
+@BService
 class TextExit {
-    @Hidden
-    @RequireOwner
-    @JDATextCommandVariation(path = ["exit"])
-    fun onTextExit(event: BaseCommandEvent, @TextOption reason: String?) {
+    @BEventListener
+    fun onMessage(event: MessageReceivedEvent, owners: BotOwners) {
+        val message = event.message
+        val selfUser = event.jda.selfUser
+
+        // Only allow owners
+        if (event.author.idLong !in owners.ownerIds) {
+            return
+        }
+        // Check prefixed with bot mention
+        if (!message.mentions.isMentioned(selfUser)) {
+            return
+        }
+        if (!message.contentRaw.startsWith(selfUser.asMention)) {
+            return
+        }
+        // Check command
+        val command = message.contentRaw.substringAfter(selfUser.asMention).trimStart()
+        val commandName = command.substringBefore(' ')
+        val reason = command.substringAfter(' ', missingDelimiterValue = "")
+
+        if (commandName != "exit") {
+            return
+        }
+
         logger.warn { "Exiting for reason: $reason" }
 
-        event.reactSuccess()
+        message.addReaction(UnicodeEmojis.WHITE_CHECK_MARK)
+            .timeout(5.seconds)
             .mapToResult()
             .queue { exitProcess(0) }
     }

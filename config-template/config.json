@@ -3,10 +3,6 @@
   "ownerIds": [
 
   ],
-  "prefixes": [
-    "<ping>",
-    "!"
-  ],
   "testGuildIds": [],
   "databaseConfig": {
     "serverName": "localhost",

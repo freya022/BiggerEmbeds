@@ -29,12 +29,6 @@ object Main {
 
                 addSearchPath(mainPackageName)
 
-                textCommands {
-                    //Use ping as prefix if configured
-                    usePingAsPrefix = "<ping>" in config.prefixes
-                    prefixes += config.prefixes - "<ping>"
-                }
-
                 applicationCommands {
                     @OptIn(DevConfig::class)
                     disableAutocompleteCache = Environment.isDev

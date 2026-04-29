@@ -7,10 +7,8 @@ import java.nio.file.Path
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.readText
 
-
 data class Config(val token: String,
                   val ownerIds: List<Long>,
-                  val prefixes: List<String>,
                   val testGuildIds: List<Long>,
 ) {
     companion object {
