@@ -7,11 +7,15 @@ import java.nio.file.Path
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.readText
 
-data class Config(val token: String,
-                  val ownerIds: List<Long>,
-                  val testGuildIds: List<Long>,
+data class Config(
+    val token: String,
+    val ownerIds: List<Long>,
+    val testGuildIds: List<Long>,
+    val videoListenerGuildIds: List<Long>,
 ) {
+
     companion object {
+
         private val logger = KotlinLogging.logger { }
 
         private val configFilePath: Path = Environment.configFolder.resolve("config.json")

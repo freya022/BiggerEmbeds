@@ -3,6 +3,7 @@
   "ownerIds": [
 
   ],
+  "videoListenerGuildIds": [],
   "testGuildIds": [],
   "databaseConfig": {
     "serverName": "localhost",
