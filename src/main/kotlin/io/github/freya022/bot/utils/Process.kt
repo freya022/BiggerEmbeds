@@ -54,6 +54,7 @@ suspend fun redirectStream(outputStream: OutputStream, processStream: InputStrea
             var readLine: String?
             while (reader.readLine().also { readLine = it } != null) {
                 writer.append(readLine + System.lineSeparator())
+                writer.flush() // So the output is present after an error
             }
         }
     }
