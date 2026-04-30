@@ -22,6 +22,7 @@ class WebhookStore {
     private val lock = Mutex()
     private val webhooks: MutableMap<Long, Webhook> = hashMapOf()
 
+    @IgnorableReturnValue
     suspend fun sendMessage(
         channel: IWebhookContainer,
         sendFunction: suspend (Webhook) -> RestAction<Message>

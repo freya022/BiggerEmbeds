@@ -44,7 +44,7 @@ class HighBitrateVideoController {
             // bytes => bytes/s => b/s (bits per second)
             val targetBitrate = (Message.MAX_FILE_SIZE / duration * 8).coerceAtMost(MAX_BITRATE.bits.toDouble())
 
-            val (outputPath, shrinkTime) = measureTimedValue { VideoShrinker.shrink(url, targetBitrate.bits) }
+            val [outputPath, shrinkTime] = measureTimedValue { VideoShrinker.shrink(url, targetBitrate.bits) }
             logger.debug { "Shrunk file #$i from ${message.idLong} from ${attachment.size.bytes} to ${outputPath.fileSize().bytes} in ${shrinkTime.toString(DurationUnit.SECONDS, decimals = 3)}" }
 
             val upload = FileUpload.fromData(outputPath)
@@ -74,7 +74,7 @@ class HighBitrateVideoController {
 
         try {
             val output = outputStream.toByteArray().decodeToString().trim()
-            val (duration, bitrate) = output.lines()
+            val [duration, bitrate] = output.lines()
             ClipStats(duration.toDouble(), bitrate.toLong().bits)
         } catch (e: Exception) {
             logger.error { "Could not get clip stats from $url" }

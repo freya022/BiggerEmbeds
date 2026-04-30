@@ -50,7 +50,7 @@ class MessageShrinkVideo(
                 .setEphemeral(hasWebhookPermissions)
                 .queue()
 
-            val (newAttachments, galleryItems) = controller.tryShrinkVideos(message) ?: return
+            (val newAttachments, val galleryItems = items) = controller.tryShrinkVideos(message) ?: return
 
             try {
                 val messageData = MessageCreate(useComponentsV2 = true) { mediaGallery(galleryItems) }
@@ -77,7 +77,7 @@ class MessageShrinkVideo(
             // Who knows where this is
             event.deferReply(false).queue()
 
-            val (newAttachments, galleryItems) = controller.tryShrinkVideos(message) ?: return
+            (val newAttachments, val galleryItems = items) = controller.tryShrinkVideos(message) ?: return
 
             try {
                 val messageData = MessageCreate(useComponentsV2 = true) { mediaGallery(galleryItems) }

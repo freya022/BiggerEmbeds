@@ -9,6 +9,7 @@ import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.io.OutputStream
 
+@IgnorableReturnValue
 suspend fun Process.waitFor(
     logger: KLogger,
     outputStream: ByteArrayOutputStream,

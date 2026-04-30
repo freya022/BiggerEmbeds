@@ -33,7 +33,7 @@ class HighBitrateVideoListener(
         if (!event.guild.selfMember.hasPermission(channel, Permission.MANAGE_WEBHOOKS))
             return logger.debug { "No webhook perms in ${channel.name} (${channel.id})" }
 
-        val (newAttachments, galleryItems) = controller.tryShrinkVideos(event.message)
+        (val newAttachments, val galleryItems = items) = controller.tryShrinkVideos(event.message)
             ?: return
 
         try {
