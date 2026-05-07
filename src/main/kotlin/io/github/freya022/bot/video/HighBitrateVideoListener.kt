@@ -25,6 +25,7 @@ class HighBitrateVideoListener(
 
     @BEventListener(ignoredIntents = [GatewayIntent.DIRECT_MESSAGES])
     suspend fun onMessage(event: MessageReceivedEvent) {
+        if (!event.isFromGuild) return
         if (event.guild.idLong !in guildIds) return
         if (event.author.isBot || event.isWebhookMessage || event.message.type.isSystem) return
 

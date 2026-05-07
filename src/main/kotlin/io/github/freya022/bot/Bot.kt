@@ -15,9 +15,8 @@ import net.dv8tion.jda.api.utils.cache.CacheFlag
 class Bot(private val config: Config) : JDAService() {
 
     override val intents: Set<GatewayIntent> = enumSetOf(
-        GatewayIntent.DIRECT_MESSAGES /* JDA falsely says both intents are required */,
         GatewayIntent.GUILD_MESSAGES,
-        GatewayIntent.MESSAGE_CONTENT
+        GatewayIntent.MESSAGE_CONTENT,
     )
 
     override val cacheFlags: Set<CacheFlag> = emptySet()
