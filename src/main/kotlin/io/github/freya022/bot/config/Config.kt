@@ -16,15 +16,13 @@ data class Config(
 
     companion object {
 
-        private val logger = KotlinLogging.logger { }
-
-        private val configFilePath: Path = Environment.configFolder.resolve("config.json")
-
         @get:BService
         val instance: Config by lazy {
+            val logger = KotlinLogging.logger { }
+            val configFilePath: Path = Environment.configFolder.resolve("config.json")
             logger.info { "Loading configuration at ${configFilePath.absolutePathString()}" }
 
-            return@lazy Gson().fromJson(configFilePath.readText(), Config::class.java)
+            Gson().fromJson(configFilePath.readText(), Config::class.java)
         }
     }
 }
