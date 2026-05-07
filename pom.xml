@@ -21,8 +21,16 @@
         <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
 
         <flyway.version>12.1.0</flyway.version>
-        <BotCommands.version>3.1.0</BotCommands.version>
+        <BotCommands.version>07caa547a94832c7238c6f30a86bd4003c77e7e3-SNAPSHOT</BotCommands.version>
     </properties>
+
+    <repositories>
+        <repository>
+            <id>reposilite-repository-snapshots</id>
+            <name>freya02 repository</name>
+            <url>https://repo.freya02.dev/snapshots</url>
+        </repository>
+    </repositories>
 
     <build>
         <plugins>
@@ -107,7 +115,12 @@
         </dependency>
         <dependency>
             <groupId>io.github.freya022</groupId>
-            <artifactId>BotCommands</artifactId>
+            <artifactId>BotCommands-core</artifactId>
+            <version>${BotCommands.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.freya022</groupId>
+            <artifactId>BotCommands-commands-app</artifactId>
             <version>${BotCommands.version}</version>
         </dependency>
         <dependency>

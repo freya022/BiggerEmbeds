@@ -5,6 +5,7 @@ import io.github.freya022.bot.config.Config
 import io.github.freya022.bot.config.Environment
 import io.github.freya022.botcommands.api.core.BotCommands
 import io.github.freya022.botcommands.api.core.config.DevConfig
+import io.github.freya022.botcommands.api.core.config.registerApplicationCommands
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlin.io.path.absolutePathString
 import kotlin.system.exitProcess
@@ -29,7 +30,7 @@ object Main {
 
                 addSearchPath(mainPackageName)
 
-                applicationCommands {
+                registerApplicationCommands {
                     @OptIn(DevConfig::class)
                     disableAutocompleteCache = Environment.isDev
 
