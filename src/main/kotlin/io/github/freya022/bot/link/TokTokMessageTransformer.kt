@@ -1,51 +1,64 @@
 package io.github.freya022.bot.link
 
+import io.github.freya022.bot.utils.printOutputs
+import io.github.freya022.bot.utils.waitFor
 import io.github.freya022.botcommands.api.core.service.annotations.BService
-import io.github.freya022.botcommands.api.core.utils.namedDefaultScope
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.launch
 import net.dv8tion.jda.api.utils.FileUpload
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import java.io.ByteArrayOutputStream
+import java.nio.file.Files
+import kotlin.io.path.absolutePathString
+import kotlin.io.path.deleteExisting
 
 private val logger = KotlinLogging.logger { }
 
 @BService
 class TokTokMessageTransformer : MessageTransformer {
-    private val outputScope = namedDefaultScope("TokTok yt-dlp output", 2)
 
     override suspend fun processMessage(data: TransformData) {
-        val files = arrayListOf<FileUpload>()
-        val replaced = urlRegex.replace(data.content) { matchResult ->
+        urlRegex.findAll(data.content).forEach { matchResult ->
             val url = matchResult.value
-            val httpUrl = url.toHttpUrlOrNull() ?: return@replace url
-            if (httpUrl.host != "vm.tiktok.com" && httpUrl.host != "www.tiktok.com") return@replace url
+            val httpUrl = url.toHttpUrlOrNull() ?: return@forEach
+            if (httpUrl.host != "vm.tiktok.com" && httpUrl.host != "www.tiktok.com") return@forEach
 
-            val byteStream = ByteArrayOutputStream(1024 * 1024 * 8)
-            val errorStream = ByteArrayOutputStream(1024 * 8)
-            val process = ProcessBuilder(
-                "yt-dlp",
-                "-f", "bv*[filesize<=20M][vcodec=h264]+ba/b[filesize<=20M][vcodec=h264] / wv*[filesize<=25M][vcodec=h264]+ba/w[filesize<=25M][vcodec=h264]",
-                "-o", "-", //TODO replace output pipe with temp file w/ cleanup
-                "-q", "--verbose",
-                url
-            ).start()
+            val outputFile = Files.createTempFile(httpUrl.pathSegments.last { it.isNotBlank() }, ".mp4")
 
-            //TODO replace with Process extensions
-            outputScope.launch { process.inputStream.buffered(1024 * 1024).transferTo(byteStream) }
-            outputScope.launch { process.errorStream.buffered().transferTo(errorStream) }
+            val outputStream = ByteArrayOutputStream()
+            val errorStream = ByteArrayOutputStream()
+            val process = ProcessBuilder()
+                .command(
+                    "yt-dlp",
+                    // Best video+audio or video-only below 10 MB in h264
+                    "-f", "b*[filesize<=10M][vcodec=h264]",
+                    // Send output to temp file
+                    "-o", outputFile.absolutePathString(),
+                    // Overwrite temp file
+                    "--force-overwrite",
+                    // Quiet and no warnings
+                    "-q", "--no-warnings",
+                    url
+                )
+                .start()
+                .waitFor(outputStream, errorStream)
 
-            if (process.waitFor() != 0) {
-                logger.error { "yt-dlp exited with ${process.exitValue()}:\n${errorStream.toByteArray().decodeToString()}" }
+            if (process.exitValue() != 0) {
+                if ("Requested format is not available" in errorStream.toString()) {
+                    outputFile.deleteExisting()
+                    return@forEach
+                }
+
+                logger.error { "Could not download toktok @ $url" }
+                printOutputs(logger, outputStream, errorStream)
+                return@forEach
             }
 
-            files += FileUpload.fromData(byteStream.toByteArray(), "${httpUrl.pathSegments.last { it.isNotBlank() }}.mp4")
-            ""
+            data.addFiles(FileUpload.fromData(outputFile))
+            data.addCallback { outputFile.deleteExisting() }
         }
 
-        if (files.isEmpty()) return
+        if (!data.hasChanged) return
 
-        data.setContent(replaced)
-        data.addFiles(files)
+        data.setContent(urlRegex.replace(data.content, ""))
     }
 }
