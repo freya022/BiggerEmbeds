@@ -7,6 +7,7 @@ import io.github.freya022.botcommands.api.core.annotations.BEventListener
 import io.github.freya022.botcommands.api.core.service.annotations.BService
 import io.github.oshai.kotlinlogging.KotlinLogging
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
+import net.dv8tion.jda.api.requests.GatewayIntent
 import kotlin.system.exitProcess
 import kotlin.time.Duration.Companion.seconds
 
@@ -14,7 +15,7 @@ private val logger = KotlinLogging.logger { }
 
 @BService
 class TextExit {
-    @BEventListener
+    @BEventListener(ignoredIntents = [GatewayIntent.DIRECT_MESSAGES])
     fun onMessage(event: MessageReceivedEvent, owners: BotOwners) {
         val message = event.message
         val selfUser = event.jda.selfUser
