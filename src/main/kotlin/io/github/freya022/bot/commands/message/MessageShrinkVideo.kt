@@ -7,6 +7,7 @@ import dev.freya02.botcommands.jda.ktx.messages.toEditData
 import io.github.freya022.bot.WebhookStore
 import io.github.freya022.bot.config.Config
 import io.github.freya022.bot.video.HighBitrateVideoController
+import io.github.freya022.bot.video.HighBitrateVideoController.PathUpload
 import io.github.freya022.botcommands.api.commands.annotations.Command
 import io.github.freya022.botcommands.api.commands.application.context.message.GuildMessageEvent
 import io.github.freya022.botcommands.api.commands.application.provider.GuildApplicationCommandManager
@@ -17,7 +18,6 @@ import net.dv8tion.jda.api.entities.channel.attribute.IWebhookContainer
 import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel
 import net.dv8tion.jda.api.interactions.IntegrationType
 import net.dv8tion.jda.api.interactions.InteractionContextType
-import net.dv8tion.jda.api.utils.FileUpload
 
 @Command
 class MessageShrinkVideo(
@@ -71,7 +71,7 @@ class MessageShrinkVideo(
                     event.hook.editOriginal(messageData.toEditData()).await()
                 }
             } finally {
-                newAttachments.forEach(FileUpload::close)
+                newAttachments.forEach(PathUpload::close)
             }
         } else {
             // Who knows where this is
@@ -83,7 +83,7 @@ class MessageShrinkVideo(
                 val messageData = MessageCreate(useComponentsV2 = true) { mediaGallery(galleryItems) }
                 event.hook.editOriginal(messageData.toEditData()).await()
             } finally {
-                newAttachments.forEach(FileUpload::close)
+                newAttachments.forEach(PathUpload::close)
             }
         }
     }

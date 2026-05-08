@@ -15,6 +15,9 @@ import net.dv8tion.jda.api.components.mediagallery.MediaGalleryItem
 import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.utils.FileUpload
 import java.io.ByteArrayOutputStream
+import java.io.Closeable
+import java.nio.file.Path
+import kotlin.io.path.deleteExisting
 import kotlin.io.path.fileSize
 import kotlin.time.DurationUnit
 import kotlin.time.measureTimedValue
@@ -26,14 +29,29 @@ private val MAX_BITRATE = 10000.kilobits
 
 @BService
 class HighBitrateVideoController {
-    data class ShrunkVideos(val newAttachments: List<FileUpload>, val items: List<MediaGalleryItem>)
+    class PathUpload(private val path: Path, private val upload: FileUpload) : Closeable {
+        private var isClosed = false
+
+        override fun close() {
+            if (isClosed) return
+            isClosed = true
+
+            try {
+                upload.close()
+                path.deleteExisting()
+            } catch (e: Exception) {
+                logger.error(e) { "Error closing path upload @ $path" }
+            }
+        }
+    }
+    data class ShrunkVideos(val newAttachments: List<PathUpload>, val items: List<MediaGalleryItem>)
 
     suspend fun tryShrinkVideos(message: Message): ShrunkVideos? {
         val attachments = message.attachments
         if (attachments.isEmpty()) return null
 
         // We want to send back the same attachments, while replacing those with a bitrate too high
-        val newAttachments = arrayListOf<FileUpload>()
+        val newAttachments = arrayListOf<PathUpload>()
         val galleryItems: List<MediaGalleryItem> = attachments.mapIndexed { i, attachment ->
             val url = attachment.proxyUrl
             if (!attachment.isVideo) return@mapIndexed MediaGalleryItem(url)
@@ -48,7 +66,7 @@ class HighBitrateVideoController {
             logger.debug { "Shrunk file #$i from ${message.idLong} from ${attachment.size.bytes} to ${outputPath.fileSize().bytes} in ${shrinkTime.toString(DurationUnit.SECONDS, decimals = 3)}" }
 
             val upload = FileUpload.fromData(outputPath)
-            newAttachments.add(upload)
+            newAttachments.add(PathUpload(outputPath, upload))
             MediaGalleryItem(upload)
         }
 
