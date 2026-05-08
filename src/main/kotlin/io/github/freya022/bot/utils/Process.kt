@@ -11,7 +11,6 @@ import java.io.OutputStream
 
 @IgnorableReturnValue
 suspend fun Process.waitFor(
-    logger: KLogger,
     outputStream: ByteArrayOutputStream,
     errorStream: ByteArrayOutputStream
 ): Process = withContext(Dispatchers.IO) {
@@ -20,15 +19,25 @@ suspend fun Process.waitFor(
         launch { redirectStream(outputStream, this@waitFor.inputStream) }
         launch { redirectStream(errorStream, this@waitFor.errorStream) }
 
-        val exitCode = waitFor()
-        if (exitCode != 0) {
-            printOutputs(logger, outputStream, errorStream)
-
-            logger.error { "Process exited with code: $exitCode" }
-        }
+        waitFor()
     }
 
     this@waitFor
+}
+
+@IgnorableReturnValue
+fun Process.printOnErrorCode(
+    logger: KLogger,
+    outputStream: ByteArrayOutputStream,
+    errorStream: ByteArrayOutputStream
+): Process {
+    val exitCode = exitValue()
+    if (exitCode != 0) {
+        printOutputs(logger, outputStream, errorStream)
+
+        logger.error { "Process exited with code: $exitCode" }
+    }
+    return this
 }
 
 fun printOutputs(

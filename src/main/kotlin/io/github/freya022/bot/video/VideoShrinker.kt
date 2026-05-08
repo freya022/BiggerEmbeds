@@ -1,6 +1,7 @@
 package io.github.freya022.bot.video
 
 import io.github.freya022.bot.utils.Size
+import io.github.freya022.bot.utils.printOnErrorCode
 import io.github.freya022.bot.utils.waitFor
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.Dispatchers
@@ -52,7 +53,8 @@ object VideoShrinker {
                 "/dev/null",
             )
             .start()
-            .waitFor(logger, outputStream, errorStream)
+            .waitFor(outputStream, errorStream)
+            .printOnErrorCode(logger, outputStream, errorStream)
     }
 
     private suspend fun doSecondPass(url: String, targetBitrate: Size): Path = withContext(Dispatchers.IO) {
@@ -82,7 +84,8 @@ object VideoShrinker {
                 outputFile.toString(),
             )
             .start()
-            .waitFor(logger, outputStream, errorStream)
+            .waitFor(outputStream, errorStream)
+            .printOnErrorCode(logger, outputStream, errorStream)
 
         outputFile
     }

@@ -5,6 +5,7 @@ import io.github.freya022.bot.utils.Size
 import io.github.freya022.bot.utils.Size.Companion.bits
 import io.github.freya022.bot.utils.Size.Companion.bytes
 import io.github.freya022.bot.utils.Size.Companion.kilobits
+import io.github.freya022.bot.utils.printOnErrorCode
 import io.github.freya022.bot.utils.printOutputs
 import io.github.freya022.bot.utils.waitFor
 import io.github.freya022.botcommands.api.core.service.annotations.BService
@@ -88,7 +89,8 @@ class HighBitrateVideoController {
                 url
             )
             .start()
-            .waitFor(logger, outputStream, errorStream)
+            .waitFor( outputStream, errorStream)
+            .printOnErrorCode(logger, outputStream, errorStream)
 
         try {
             val output = outputStream.toByteArray().decodeToString().trim()
