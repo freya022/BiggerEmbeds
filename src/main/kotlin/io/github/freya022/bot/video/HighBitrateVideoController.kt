@@ -5,6 +5,7 @@ import io.github.freya022.bot.utils.Size
 import io.github.freya022.bot.utils.Size.Companion.bits
 import io.github.freya022.bot.utils.Size.Companion.bytes
 import io.github.freya022.bot.utils.Size.Companion.kilobits
+import io.github.freya022.bot.utils.Size.Companion.megabytes
 import io.github.freya022.bot.utils.printOnErrorCode
 import io.github.freya022.bot.utils.printOutputs
 import io.github.freya022.bot.utils.waitFor
@@ -27,6 +28,8 @@ private val logger = KotlinLogging.logger { }
 
 // 10000 kbps
 private val MAX_BITRATE = 10000.kilobits
+
+private val MAX_FILESIZE = 9.megabytes
 
 @BService
 class HighBitrateVideoController {
@@ -61,7 +64,7 @@ class HighBitrateVideoController {
             if (bitrate <= MAX_BITRATE) return@mapIndexed MediaGalleryItem(url)
 
             // bytes => bytes/s => b/s (bits per second)
-            val targetBitrate = (Message.MAX_FILE_SIZE / duration * 8).coerceAtMost(MAX_BITRATE.bits.toDouble())
+            val targetBitrate = (MAX_FILESIZE.bytes / duration * 8).coerceAtMost(MAX_BITRATE.bits.toDouble())
 
             val [outputPath, shrinkTime] = measureTimedValue { VideoShrinker.shrink(url, targetBitrate.bits) }
             logger.debug { "Shrunk file #$i from ${message.idLong} from ${attachment.size.bytes} to ${outputPath.fileSize().bytes} in ${shrinkTime.toString(DurationUnit.SECONDS, decimals = 3)}" }
