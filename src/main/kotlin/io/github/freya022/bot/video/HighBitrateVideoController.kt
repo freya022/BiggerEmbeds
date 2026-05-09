@@ -69,7 +69,7 @@ class HighBitrateVideoController {
             val [outputPath, shrinkTime] = measureTimedValue { VideoShrinker.shrink(url, targetBitrate.bits) }
             logger.debug { "Shrunk file #$i from ${message.idLong} from ${attachment.size.bytes} to ${outputPath.fileSize().bytes} in ${shrinkTime.toString(DurationUnit.SECONDS, decimals = 3)}" }
 
-            val upload = FileUpload.fromData(outputPath)
+            val upload = FileUpload.fromData(outputPath, "${attachment.fileName.substringBeforeLast('.')}_shrunk.mp4")
             newAttachments.add(PathUpload(outputPath, upload))
             MediaGalleryItem(upload)
         }
