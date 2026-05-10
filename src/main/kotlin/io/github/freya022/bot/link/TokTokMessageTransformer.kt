@@ -17,6 +17,7 @@ private val logger = KotlinLogging.logger { }
 class TokTokMessageTransformer : MessageTransformer {
 
     override suspend fun processMessage(data: TransformData) {
+        var hasChanged = false
         urlRegex.findAll(data.content).forEach { matchResult ->
             val url = matchResult.value
             val httpUrl = url.toHttpUrlOrNull() ?: return@forEach
@@ -55,9 +56,10 @@ class TokTokMessageTransformer : MessageTransformer {
 
             data.addFiles(FileUpload.fromData(outputFile))
             data.addCallback { outputFile.deleteExisting() }
+            hasChanged = true
         }
 
-        if (!data.hasChanged) return
+        if (!hasChanged) return
 
         data.setContent(urlRegex.replace(data.content, ""))
     }
