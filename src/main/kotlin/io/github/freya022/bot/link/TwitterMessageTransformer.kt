@@ -17,19 +17,29 @@ data object TwitterMessageTransformer : MessageTransformer {
             "vxtwitter.com", "fixvx.com",
         )
         val quotedHosts = replacedHosts.joinToString("|") { Regex.escape(it) }
-        Regex("""https://(?:${quotedHosts})\S*""")
+        Regex("""<?https://(?:${quotedHosts})\S*>?""")
     }
 
     override suspend fun processMessage(data: TransformData) {
         val urls = arrayListOf<String>()
         val replaced = urlRegex.replace(data.content) {
-            it.value.toHttpUrl()
+            val match = it.value
+            val isSuppressed = match.startsWith('<') && match.endsWith('>')
+            val url = if (isSuppressed) match.substring(1, match.length - 1) else match
+
+            val newUrl = url.toHttpUrl()
                 .newBuilder()
                 .host(TARGET_HOST)
                 .query(null)
                 .fragment(null)
                 .toString()
                 .also(urls::add)
+
+            if (isSuppressed) {
+                "<$newUrl>"
+            } else {
+                newUrl
+            }
         }
 
         if (urls.isEmpty()) return
