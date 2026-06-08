@@ -86,8 +86,7 @@ class HighBitrateVideoController {
             .command(
                 "ffprobe",
                 "-v", "error",
-                "-select_streams", "v:0",
-                "-show_entries", "stream=duration,bit_rate",
+                "-show_entries", "format=duration,bit_rate",
                 "-of", "default=noprint_wrappers=1:nokey=1",
                 url
             )
