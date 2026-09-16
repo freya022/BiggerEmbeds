@@ -29,7 +29,7 @@ private val logger = KotlinLogging.logger { }
 // 10000 kbps
 private val MAX_BITRATE = 10000.kilobits
 
-private val MAX_FILESIZE = 9.megabytes
+private val MAX_FILESIZE = 18.megabytes
 
 @BService
 class HighBitrateVideoController {
