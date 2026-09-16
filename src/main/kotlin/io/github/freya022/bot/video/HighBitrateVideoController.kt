@@ -79,7 +79,7 @@ class HighBitrateVideoController {
         return ShrunkVideos(newAttachments, galleryItems)
     }
 
-    private suspend fun getClipStats(url: String): ClipStats = withContext(Dispatchers.IO) {
+    suspend fun getClipStats(url: String): ClipStats = withContext(Dispatchers.IO) {
         val outputStream = ByteArrayOutputStream()
         val errorStream = ByteArrayOutputStream()
         ProcessBuilder()
@@ -105,5 +105,5 @@ class HighBitrateVideoController {
         }
     }
 
-    private data class ClipStats(val duration: Double, val bitrate: Size)
+    class ClipStats(val duration: Double, val bitrate: Size)
 }
