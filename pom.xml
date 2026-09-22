@@ -66,6 +66,9 @@
                                     <mainClass>io.github.freya022.bot.Main</mainClass>
                                 </transformer>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                                    <resource>META-INF/bc.classes</resource>
+                                </transformer>
                             </transformers>
 
                             <createDependencyReducedPom>false</createDependencyReducedPom>
