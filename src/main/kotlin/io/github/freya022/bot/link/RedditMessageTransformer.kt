@@ -3,28 +3,37 @@ package io.github.freya022.bot.link
 import dev.freya02.botcommands.jda.ktx.components.row
 import io.github.freya022.botcommands.api.core.service.annotations.BService
 import net.dv8tion.jda.api.components.buttons.Button
-import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 
 @BService
 data object RedditMessageTransformer : MessageTransformer {
+    private const val TARGET_HOST = "vxreddit.com"
+
+    private val urlRegex = run {
+        val replacedHosts = listOf(
+            "reddit.com",
+            "reddit.com",
+            "rxddit.com",
+            "vxreddit.com",
+        )
+        val quotedHosts = replacedHosts.joinToString("|") { Regex.escape(it) }
+        Regex("""<?https://(?:${quotedHosts})\S*>?""")
+    }
+
     override suspend fun processMessage(data: TransformData) {
         val urls = arrayListOf<String>()
-        val replaced = urlRegex.replace(data.content) {
-            val httpUrl = it.value.toHttpUrlOrNull() ?: return@replace it.value
-            if (!httpUrl.host.endsWith("reddit.com") && !httpUrl.host.endsWith("rxddit.com")) return@replace it.value
-
-            httpUrl
-                .newBuilder()
-                .host(httpUrl.host.replaceFirst("reddit.com", "rxddit.com"))
-                .query(null)
-                .fragment(null)
-                .toString()
-                .also(urls::add)
+        val replaced = urlRegex.replace(data.content) { matchResult ->
+            suppressedLinkAwareBuilder(matchResult.value) { original ->
+                val subdomainParts = original.host.split('.').dropLast(2)
+                // Support for old reddit for example
+                host((subdomainParts + TARGET_HOST).joinToString("."))
+                query(null)
+                fragment(null)
+            }.also(urls::add)
         }
 
         if (urls.isEmpty()) return
 
-        fun String.asRedditUrl() = replaceFirst("rxddit.com", "reddit.com")
+        fun String.asRedditUrl() = replaceFirst(TARGET_HOST, "reddit.com")
 
         data.setContent(replaced)
         if (urls.size == 1) {
