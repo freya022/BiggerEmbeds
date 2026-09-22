@@ -46,7 +46,7 @@ data object TwitterMessageTransformer : MessageTransformer {
 
         fun String.asTwitterUrl() = replaceFirst(TARGET_HOST, "twitter.com")
         fun String.asXUrl() = replaceFirst(TARGET_HOST, "x.com")
-        fun String.asNitterUrl() = replaceFirst(TARGET_HOST, "nitter.net")
+//        fun String.asNitterUrl() = replaceFirst(TARGET_HOST, "nitter.net")
 
         data.setContent(replaced)
         if (urls.size == 1) {
@@ -54,7 +54,7 @@ data object TwitterMessageTransformer : MessageTransformer {
                 row(
                     Button.link(urls.first().asTwitterUrl(), "Twitter"),
                     Button.link(urls.first().asXUrl(), "X"),
-                    Button.link(urls.first().asNitterUrl(), "Nitter"),
+//                    Button.link(urls.first().asNitterUrl(), "Nitter"),
                 )
             )
         } else {
@@ -62,7 +62,7 @@ data object TwitterMessageTransformer : MessageTransformer {
                 listOf(
                     Button.link(url.asTwitterUrl(), "See #${i + 1} on Twitter"),
                     Button.link(url.asXUrl(), "See #${i + 1} on X"),
-                    Button.link(url.asNitterUrl(), "See #${i + 1} on Nitter"),
+//                    Button.link(url.asNitterUrl(), "See #${i + 1} on Nitter"),
                 )
             }
             data.addComponents(buttons.chunked(4) { it.row() }.take(5))
