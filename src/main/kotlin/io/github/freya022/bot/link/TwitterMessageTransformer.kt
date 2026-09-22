@@ -3,7 +3,6 @@ package io.github.freya022.bot.link
 import dev.freya02.botcommands.jda.ktx.components.row
 import io.github.freya022.botcommands.api.core.service.annotations.BService
 import net.dv8tion.jda.api.components.buttons.Button
-import okhttp3.HttpUrl.Companion.toHttpUrl
 
 @BService
 data object TwitterMessageTransformer : MessageTransformer {
@@ -22,24 +21,12 @@ data object TwitterMessageTransformer : MessageTransformer {
 
     override suspend fun processMessage(data: TransformData) {
         val urls = arrayListOf<String>()
-        val replaced = urlRegex.replace(data.content) {
-            val match = it.value
-            val isSuppressed = match.startsWith('<') && match.endsWith('>')
-            val url = if (isSuppressed) match.substring(1, match.length - 1) else match
-
-            val newUrl = url.toHttpUrl()
-                .newBuilder()
-                .host(TARGET_HOST)
-                .query(null)
-                .fragment(null)
-                .toString()
-                .also(urls::add)
-
-            if (isSuppressed) {
-                "<$newUrl>"
-            } else {
-                newUrl
-            }
+        val replaced = urlRegex.replace(data.content) { matchResult ->
+            suppressedLinkAwareBuilder(matchResult.value) {
+                host(TARGET_HOST)
+                query(null)
+                fragment(null)
+            }.also(urls::add)
         }
 
         if (urls.isEmpty()) return
