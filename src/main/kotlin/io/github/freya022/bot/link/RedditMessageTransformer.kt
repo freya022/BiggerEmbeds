@@ -16,7 +16,7 @@ data object RedditMessageTransformer : MessageTransformer {
             "vxreddit.com",
         )
         val quotedHosts = replacedHosts.joinToString("|") { Regex.escape(it) }
-        Regex("""<?https://(?:${quotedHosts})\S*>?""")
+        Regex("""<?https://(?:www\.)?(?:${quotedHosts})/r/\S*>?""")
     }
 
     override suspend fun processMessage(data: TransformData) {
