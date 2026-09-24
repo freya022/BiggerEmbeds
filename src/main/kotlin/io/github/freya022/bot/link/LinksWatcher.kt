@@ -40,7 +40,7 @@ class LinksWatcher(
                 .setAvatarUrl(event.member!!.effectiveAvatarUrl)
         }
 
-        if (event.guild.selfMember.hasPermission(Permission.MESSAGE_MANAGE)) {
+        if (event.guild.selfMember.hasPermission(channel, Permission.MESSAGE_MANAGE)) {
             event.message.suppressEmbeds(true).await()
         }
     }
